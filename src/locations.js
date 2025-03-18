@@ -972,6 +972,12 @@ function get_location_type_penalty(type, stage, stat) {
 
     locations["Town outskirts"].connected_locations.push({location: locations["Town farms"]}, {location: locations["Slums"]});
 })();
+    locations["Catacombs"] = new Location({ 
+        connected_locations: [{location: locations["Village"], custom_text: "Return to the village"}],
+        description: "A dismal place, full of restless dead",
+        name: "Catacombs",
+        is_unlocked: true,
+    });
 
 //challenge zones
 (function(){
