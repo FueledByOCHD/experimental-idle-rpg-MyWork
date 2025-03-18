@@ -629,7 +629,7 @@ function get_location_type_penalty(type, stage, stat) {
 //create locations and zones
 (function(){ 
     locations["Village"] = new Location({ 
-        connected_locations: [{location: locations["Catacombs"]}], 
+        connected_locations: [], 
         getDescription: function() {
             if(locations["Infested field"].enemy_groups_killed >= 5 * locations["Infested field"].enemy_count) { 
                 return "Medium-sized village, built next to a small river at the foot of the mountains. It's surrounded by many fields, a few of them infested by huge rats, which, while an annoyance, don't seem possible to fully eradicate. Other than that, there's nothing interesting around";
@@ -978,6 +978,7 @@ function get_location_type_penalty(type, stage, stat) {
         name: "Catacombs",
         is_unlocked: true,
     });
+locations["Village"].connected_locations.push({location: locations["Catacombs"]});
 
 //challenge zones
 (function(){
