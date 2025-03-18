@@ -81,9 +81,9 @@ character.stats.multiplier = {
 
 character.xp_bonuses = {};
 character.xp_bonuses.total_multiplier = {
-        hero: 10000,
-        all: 10000,
-        all_skill: 10000,
+        hero: 1,
+        all: 1,
+        all_skill: 1,
 };
 
 character.xp_bonuses.multiplier = {
