@@ -980,6 +980,24 @@ function get_location_type_penalty(type, stage, stat) {
     });
 locations["Village"].connected_locations.push({location: locations["Catacombs"]});
 
+    locations["Catacomb Depths"] = new Combat_zone({
+        description: "Field infested with wolf rats. You can see the grain stalks move as these creatures scurry around.", 
+        enemy_count: 15, 
+        enemies_list: ["Skeleton"],
+        types: [{type: "open", stage: 1, xp_gain: 1}],
+        enemy_stat_variation: 0.1,
+        is_unlocked: true, 
+        name: "Catacomb Depths", 
+        parent_location: locations["Catacombs"],
+        first_reward: {
+            xp: 10,
+        },
+        repeatable_reward: {
+            xp: 5,
+        }
+    });
+    locations["Catacombs"].connected_locations.push({location: locations["Catacomb Depths"]});
+
 //challenge zones
 (function(){
     locations["Sparring with the village guard (heavy)"] = new Challenge_zone({
