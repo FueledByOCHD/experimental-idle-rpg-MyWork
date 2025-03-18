@@ -981,10 +981,10 @@ function get_location_type_penalty(type, stage, stat) {
 locations["Village"].connected_locations.push({location: locations["Catacombs"]});
 
     locations["Catacomb Depths"] = new Combat_zone({
-        description: "Field infested with wolf rats. You can see the grain stalks move as these creatures scurry around.", 
+        description: "A dismal place, full of restless dead.", 
         enemy_count: 15, 
         enemies_list: ["Skeleton"],
-        types: [{type: "open", stage: 1, xp_gain: 1}],
+        types: [{type: "narrow", stage: 1,  xp_gain: 6}, {type: "dark", stage: 3, xp_gain: 3}],
         enemy_stat_variation: 0.1,
         is_unlocked: true, 
         name: "Catacomb Depths", 
