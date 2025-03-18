@@ -216,7 +216,7 @@ class Enemy {
         tags: ["unanimate"],
         stats: {health: 40, attack: 10, agility: 8, dexterity: 6, intuition: 7, magic: 0, attack_speed: 1, defense: 6}, 
         loot_list: [
-            {item_name: "Bones", chance: 0.60},
+            {item_name: "Wolf fang", chance: 0.60},
         ],
     });
 })();
