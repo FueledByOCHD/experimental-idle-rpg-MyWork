@@ -1020,10 +1020,10 @@ item_templates["Twist liek a snek"] = new Book({
         material_type: "bone",
     });
 
-        item_templates["Bones"] = new Material({
+    item_templates["Bones"] = new Material({
         name: "Bones", 
         description: "Skeleton bone",
-        value: 30,
+        value: 50,
         price_recovers: true,
         material_type: "bone",
     });
