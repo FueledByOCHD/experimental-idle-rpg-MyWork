@@ -206,6 +206,20 @@ class Enemy {
         ],
         size: "medium"
     });
+    
+    enemy_templates["Skeleton"] = new Enemy({
+        name: "Skeleton", 
+        description: "Vicious undead",
+        xp_value: 10, 
+        rank: 1,
+        size: "medium",
+        tags: ["unanimate"],
+        stats: {health: 40, attack: 10, agility: 8, dexterity: 6, intuition: 7, magic: 0, attack_speed: 1, defense: 6}, 
+        loot_list: [
+            {item_name: "Bones", chance: 0.60},
+            ,
+        ]
+    });
 })();
 
 
@@ -253,17 +267,5 @@ class Enemy {
         stats: {health: 400, attack: 60, agility: 60, dexterity: 60, magic: 0, intuition: 60, attack_speed: 2, defense: 30},
     });
 })()
-enemy_templates["Skeleton"] = new Enemy({
-        name: "Skeleton", 
-        description: "Rat with size of a dog",
-        xp_value: 10, 
-        rank: 1,
-        size: "medium",
-        tags: ["unanimate"],
-        stats: {health: 40, attack: 10, agility: 8, dexterity: 6, intuition: 7, magic: 0, attack_speed: 1, defense: 6}, 
-        loot_list: [
-            {item_name: "Bones", chance: 0.60},
-            ,
-        ]
-    });
+
 export {Enemy, enemy_templates, enemy_killcount};
