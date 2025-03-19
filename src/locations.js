@@ -972,6 +972,18 @@ function get_location_type_penalty(type, stage, stat) {
 
     locations["Town outskirts"].connected_locations.push({location: locations["Town farms"]}, {location: locations["Slums"]});
 })();
+    locations["Burial Chamber"] = new Location({
+        connected_locations: [{location: locations["Catacombs"], custom_text: "Go outside"}],
+        description: "A barren empty room, save for a stone slab.",
+        name: "Burial Chamber",
+        is_unlocked: false,
+        sleeping: {
+            text: "Take a nap",
+            xp: 1},
+    })
+
+    locations["Village"].connected_locations.push({location: locations["Shack"]});
+
     locations["Catacombs"] = new Location({ 
         connected_locations: [{location: locations["Village"], custom_text: "Return to the village"}],
         description: "A dismal place, full of restless dead",
@@ -979,6 +991,7 @@ function get_location_type_penalty(type, stage, stat) {
         is_unlocked: true,
     });
 locations["Village"].connected_locations.push({location: locations["Catacombs"]});
+locations["Burial Chamber"].connected_locations.push({location: locations["Catacombs"]});
 
     locations["Catacomb Depths"] = new Combat_zone({
         description: "A dismal place, full of restless dead.", 
