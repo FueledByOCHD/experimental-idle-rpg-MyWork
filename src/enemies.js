@@ -224,47 +224,7 @@ class Enemy {
 
 //challenge enemies
 (function(){
-    enemy_templates["Village guard (heavy)"] = new Enemy({
-        name: "Village guard (heavy)", 
-        description: "", 
-        add_to_bestiary: false,
-        xp_value: 1,
-        rank: 4,
-        tags: ["living", "human"],
-        size: "medium",
-        stats: {health: 300, attack: 50, agility: 20, dexterity: 80, magic: 0, intuition: 20, attack_speed: 0.2, defense: 30},
-    });
-    enemy_templates["Village guard (quick)"] = new Enemy({
-        name: "Village guard (quick)", 
-        description: "", 
-        add_to_bestiary: false,
-        xp_value: 1,
-        rank: 4,
-        tags: ["living", "human"],
-        size: "medium",
-        stats: {health: 300, attack: 20, agility: 20, dexterity: 50, magic: 0, intuition: 20, attack_speed: 2, defense: 10},
-    });
-    enemy_templates["Suspicious wall"] = new Enemy({
-        name: "Suspicious wall", 
-        description: "", 
-        add_to_bestiary: false,
-        xp_value: 1,
-        rank: 1,
-        tags: ["unanimate"],
-        size: "large",
-        stats: {health: 10000, attack: 0, agility: 0, dexterity: 0, magic: 0, intuition: 0, attack_speed: 0.000001, defense: 100},
-    });
-
-    enemy_templates["Suspicious man"] = new Enemy({
-        name: "Suspicious man", 
-        description: "", 
-        add_to_bestiary: false,
-        xp_value: 1,
-        rank: 5,
-        tags: ["living", "human"],
-        size: "medium",
-        stats: {health: 400, attack: 60, agility: 60, dexterity: 60, magic: 0, intuition: 60, attack_speed: 2, defense: 30},
-    });
+    
 })()
 
 export {Enemy, enemy_templates, enemy_killcount};
