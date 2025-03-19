@@ -669,10 +669,10 @@ function get_location_type_penalty(type, stage, stat) {
 
 //challenge zones
 (function(){
-   
+})()
 //add activities
 (function(){
-
+})()
 //add actions
 
 export {locations, location_types, get_location_type_penalty};
