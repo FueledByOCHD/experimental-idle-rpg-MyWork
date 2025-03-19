@@ -3018,7 +3018,7 @@ else {
     update_displayed_stance_list();
     change_stance("normal");
     create_displayed_crafting_recipes();
-    change_location("Village");
+    change_location("Burial Chamber");
 } //checks if there's an existing save file, otherwise just sets up some initial equipment
 
 document.getElementById("loading_screen").style.visibility = "hidden";
