@@ -2917,7 +2917,7 @@ function update() {
 
 function run() {
     if(typeof current_location === "undefined") {
-        change_location("Village");
+        change_location("Burial Chamber");
     } 
     
     update_displayed_health();
