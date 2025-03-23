@@ -1,0 +1,38 @@
+Tasks:
+
+
+Task#1
+
+in locations.js, rework:
+
+get_total_effect() 
+get_location_type_penalty
+
+so that it also functions with flat effects (i.e. health_regenration_flat: (-2)), rather than just multipliers. 
+
+Will need some adjustments to effects formatting on:
+location_types 
+
+Task#2
+
+in main.js
+
+Implement a new cast_magic function using { magic_templates } from "./magic.js"
+
+function to be used for buff spells using active_effects from active_effects.js (similar to the "use_item" function) ,  but also for health or stamina restoration (relevant stats: character.stats.full["health"], and character.stats.full["stamina"]
+
+it should call the use_mana function to expend mana_cost  
+
+Task#3
+
+Implement usable magic UI, to cast spells
+
+
+section to change in index.HTML 
+
+ <div id = "magic_list_div">
+ <div id = "magic_list">
+ 
+ and in display.js
+ 
+ const magic_list = document.getElementById("magic_list");
