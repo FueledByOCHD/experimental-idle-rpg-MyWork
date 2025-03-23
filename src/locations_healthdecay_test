@@ -208,7 +208,6 @@ class Combat_zone {
                                             attack_speed: Math.round(enemy.stats.attack_speed * (base - Math.random() * vary) * 100) / 100,
                                             defense: Math.round(enemy.stats.defense * (base - Math.random() * vary))
                                         },
-										tags: enemy.tags,
                                         loot_list: enemy.loot_list,
                                         add_to_bestiary: enemy.add_to_bestiary,
                                         size: enemy.size,
@@ -220,7 +219,6 @@ class Combat_zone {
                     xp_value: enemy.xp_value,
                     stats: {
                         health: enemy.stats.health,
-						health: enemy.stats.max_health,
                         attack: enemy.stats.attack,
                         agility: enemy.stats.agility,
                         dexterity: enemy.stats.dexterity,
@@ -243,31 +241,33 @@ class Combat_zone {
     //calculates total penalty with and without hero skills
     //launches on every combat action
     get_total_effect() {
-        const effects = {multipliers: {}};
-        const hero_effects = {multipliers: {}};
-        
-        //iterate over types of location
-        for(let i = 0; i < this.types.length; i++) {
-            const type = location_types[this.types[i].type].stages[this.types[i].stage];
+    const effects = { multipliers: {}, health_regeneration_flat: -2 };  // Add health_decay to the existing multipliers
+    const hero_effects = { multipliers: {}, health_regeneration_flat: -2 };  // Add health_decay to hero effects
 
-            if(!type.related_skill || !type.effects) { 
-                continue; 
-            }
+    // Iterate over types of location
+    for (let i = 0; i < this.types.length; i++) {
+        const type = location_types[this.types[i].type].stages[this.types[i].stage];
 
-            //iterate over effects each type has 
-            //(ok there's really just only 3 that make sense: attack points, evasion points, strength, though maybe also attack speed? mainly the first 2 anyway)
-            Object.keys(type.effects.multipliers).forEach((effect) => { 
-
-                effects.multipliers[effect] = (effects.multipliers[effect] || 1) * type.effects.multipliers[effect];
-                
-                hero_effects.multipliers[effect] = (hero_effects.multipliers[effect] || 1) * get_location_type_penalty(this.types[i].type, this.types[i].stage, effect);
-            })
+        if (!type.related_skill || !type.effects) {
+            continue;
         }
 
-        
+        // Handle multipliers (existing functionality)
+        Object.keys(type.effects.multipliers).forEach((effect) => {
+            effects.multipliers[effect] = (effects.multipliers[effect] || 1) * type.effects.multipliers[effect];
 
-        return {base_penalty: effects, hero_penalty: hero_effects};
+            hero_effects.multipliers[effect] = (hero_effects.multipliers[effect] || 1) * get_location_type_penalty(this.types[i].type, this.types[i].stage, effect);
+        });
+
+        // Handle health decay (new functionality)
+        if (type.effects.health_regeneration_flat) {
+            effects.health_regeneration_flat += type.effects.health_regeneration_flat;
+            hero_effects.health_regeneration_flat += get_location_type_penalty(this.types[i].type, this.types[i].stage, "health_regeneration_flat");
+        }
     }
+
+    return { base_penalty: effects, hero_penalty: hero_effects };
+}
 }
 
 class Challenge_zone extends Combat_zone {
@@ -644,91 +644,21 @@ function get_location_type_penalty(type, stage, stat) {
         }
     });
 	
- location_types["noxious"] = new LocationType({
-        name: "noxious",
-        stages: {
-            1: {
-                description: "noxious",
-                related_skill: "Poison resistance",
+location_types["noxious"] = new LocationType({
+    name: "noxious",
+    stages: {
+        1: {
+            description: "noxious",
+            related_skill: "Poison resistance",
                 effects: {
-                    multipliers: {
-                        evasion_points: 0.1,
-                    }
-                }
-            },
+        stats: {
+            health_regeneration_flat: {flat: -1},
         }
-    });	
-location_types["cursed"] = new LocationType({
-        name: "cursed",
-        stages: {
-            1: {
-                description: "cursed1",
-                related_skill: "Curse resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.8,
-                        evasion_points: 0.8,
-                    }
-                }
-            },
-            2: {
-                description: "cursed2",
-                related_skill: "Curse resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.6,
-                        evasion_points: 0.6,
-                    }
-                }
-            },
-            3: {
-                description: "cursed3",
-                related_skill: "Curse resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.35,
-                        evasion_points: 0.35,
-                    }
-                }
-            }
-        }
-    });
-	
-location_types["thundering"] = new LocationType({
-        name: "thundering",
-        stages: {
-            1: {
-                description: "thundering1",
-                related_skill: "Shock resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.8,
-                        evasion_points: 0.8,
-                    }
-                }
-            },
-            2: {
-                description: "thundering2",
-                related_skill: "Shock resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.6,
-                        evasion_points: 0.6,
-                    }
-                }
-            },
-            3: {
-                description: "thundering3",
-                related_skill: "Shock resistance",
-                effects: {
-                    multipliers: {
-                        attack_points: 0.35,
-                        evasion_points: 0.35,
-                    }
-                }
-            }
-        }
-    });
+    }
+        },
+    }
+});
+
 })();
 
 
@@ -738,7 +668,6 @@ location_types["thundering"] = new LocationType({
         connected_locations: [],
         description: "A barren empty room, save for a stone slab.",
         name: "Burial Chamber",
-		traders: ["debug trader"],
         is_unlocked: true,
         sleeping: {
             text: "Take a nap",
@@ -1103,7 +1032,7 @@ locations["Burial Chamber"].connected_locations.push({location: locations["Catac
     locations["Wandering Undead"] = new Combat_zone({
         description: "Deal with undead stragglers.", 
         enemy_count: 15, 
-        enemies_list: ["OmniPinata"],
+        enemies_list: ["Skeleton"],
         types: [{type: "dark", stage: 1, xp_gain: 3}],
         enemy_stat_variation: 0.1,
         is_unlocked: true, 
@@ -1147,7 +1076,7 @@ locations["Sewer"].connected_locations.push({location: locations["Sewer Depths"]
     locations["Sewer Beasts"] = new Combat_zone({
         description: "Deal with sewer beasts.", 
         enemy_count: 20, 
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         types: [{type: "dark", stage: 1, xp_gain: 3}],
         enemy_stat_variation: 0.1,
         is_unlocked: true, 
@@ -1175,7 +1104,7 @@ locations["Sewer"].connected_locations.push({location: locations["Backstreets"]}
     locations["Deep Sewer Beasts"] = new Combat_zone({
         description: "Deal with sewer beasts.", 
         enemy_count: 30, 
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         types: [{type: "dark", stage: 2, xp_gain: 5}],
         enemy_stat_variation: 0.1,
         is_unlocked: true, 
@@ -1286,7 +1215,7 @@ locations["Throne Room"] = new Location({
         is_unlocked: true,
 		sleeping: {
             text: "Rest in the Royal Bedchamber",
-            xp: 10000},	
+            xp: 6},	
     });
 	
 locations["Fallen Palace"].connected_locations.push({location: locations["Throne Room"]});
@@ -1326,15 +1255,6 @@ locations["The Roost"] = new Location({
     });
 	
 locations["Vivarium"].connected_locations.push({location: locations["The Roost"]});
-
-locations["The Maelstrom"] = new Location({ 
-        connected_locations: [{location: locations["The Roost"]}],
-        description: "The Maelstrom",
-        name: "The Maelstrom",
-        is_unlocked: true,
-    });
-	
-locations["The Roost"].connected_locations.push({location: locations["The Maelstrom"]});
 
 locations["Well of Souls"] = new Location({ 
         connected_locations: [{location: locations["Vivarium"]}],
@@ -1556,7 +1476,7 @@ locations["Mine Dwellers"] = new Combat_zone({
         description: "Mine Dwellers", 
         enemy_count: 25, 
         types: [{type: "narrow", stage: 1,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
         is_unlocked: true, 
@@ -1572,25 +1492,6 @@ locations["Mine Dwellers"] = new Combat_zone({
         }
     });
 locations["Mines"].connected_locations.push({location: locations["Mine Dwellers"]});
-
-locations["Strange Knight"] = new Combat_zone({
-        description: "Strange Knight", 
-        enemy_count: 25, 
-        types: [],
-        enemies_list: ["Speedy Pinata"],
-        enemy_group_size: [3,4],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true, 
-        name: "Strange Knight",
-        parent_location: locations["Catacomb Depths"],
-        first_reward: {
-            xp: 20,
-        },
-        repeatable_reward: {
-            xp: 10,
-        }
-    });
-locations["Catacomb Depths"].connected_locations.push({location: locations["Strange Knight"]});
 
 locations["Forest Beasts"] = new Combat_zone({
         description: "Forest Beasts", 
@@ -1615,7 +1516,7 @@ locations["Forest"].connected_locations.push({location: locations["Forest Beasts
 locations["The Dregs"] = new Combat_zone({
         description: "The Dregs", 
 		types: [],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1635,7 +1536,7 @@ locations["The Midden"].connected_locations.push({location: locations["The Dregs
 locations["The Dregs2"] = new Combat_zone({
         description: "The Dregs2", 
 		types: [],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1655,7 +1556,7 @@ locations["Burning Fields"].connected_locations.push({location: locations["The D
 locations["Fire Beasts"] = new Combat_zone({
         description: "Fire Beasts", 
 		types: [{type: "hot", stage: 1,  xp_gain: 3}, {type: "bright", stage: 1,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1675,7 +1576,7 @@ locations["Fire Pit"].connected_locations.push({location: locations["Fire Beasts
 locations["Fire Beasts2"] = new Combat_zone({
         description: "Fire Beasts2", 
 		types: [{type: "hot", stage: 2,  xp_gain: 5}, {type: "bright", stage: 1,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 30, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1695,7 +1596,7 @@ locations["Fire Pit"].connected_locations.push({location: locations["Fire Beasts
 locations["Fire Beasts3"] = new Combat_zone({
         description: "Fire Beasts3", 
 		types: [{type: "hot", stage: 3,  xp_gain: 10}, {type: "bright", stage: 2,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 50, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1714,7 +1615,7 @@ locations["Fire Pit"].connected_locations.push({location: locations["Fire Beasts
 locations["Ice Beasts"] = new Combat_zone({
         description: "Ice Beasts", 
 		types: [{type: "cold", stage: 1,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1734,7 +1635,7 @@ locations["Glacier Wing"].connected_locations.push({location: locations["Ice Bea
 locations["Ice Beasts2"] = new Combat_zone({
         description: "Ice Beasts2", 
 		types: [{type: "cold", stage: 2,  xp_gain: 5}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 30, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1754,7 +1655,7 @@ locations["Glacier Wing"].connected_locations.push({location: locations["Ice Bea
 locations["Ice Beasts3"] = new Combat_zone({
         description: "Ice Beasts3", 
 		types: [{type: "cold", stage: 3,  xp_gain: 10}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 50, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1773,7 +1674,7 @@ locations["Glacier Wing"].connected_locations.push({location: locations["Ice Bea
 locations["Chaos Beasts"] = new Combat_zone({
         description: "Chaos Beasts", 
 		types: [{type: "cold", stage: 2,  xp_gain: 5}, {type: "hot", stage: 2,  xp_gain: 5}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1792,7 +1693,7 @@ locations["The Frozen Flame"].connected_locations.push({location: locations["Cha
 locations["Bridge Crossing"] = new Combat_zone({
         description: "Bridge Crossing", 
 		types: [{type: "unstable", stage: 1,  xp_gain: 3}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1812,7 +1713,7 @@ locations["Ancient Bridge"].connected_locations.push({location: locations["Bridg
 locations["Toxic Enemies"] = new Combat_zone({
         description: "Toxic Enemies", 
 		types: [{type: "noxious", stage: 1,  xp_gain: 4}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1831,7 +1732,7 @@ locations["Deathwater Bog"].connected_locations.push({location: locations["Toxic
 locations["Palace Menagerie"] = new Combat_zone({
         description: "Palace Menagerie", 
 		types: [{type: "open", stage: 2,  xp_gain: 10}],
-        enemies_list: ["Pinata"],
+        enemies_list: ["Skeleton"],
         enemy_count: 10, 
         enemy_group_size: [2,3],
         enemy_stat_variation: 0.2,
@@ -1847,102 +1748,6 @@ locations["Palace Menagerie"] = new Combat_zone({
         }
     });
 locations["Royal Gardens"].connected_locations.push({location: locations["Palace Menagerie"], custom_text: "Palace Menagerie"});
-
-locations["Royal Rat's Court"] = new Combat_zone({
-        description: "Royal Rat's Court", 
-		types: [{type: "dark", stage: 3,  xp_gain: 10}, {type: "narrow", stage: 1,  xp_gain: 4}],
-        enemies_list: ["Pinata"],
-        enemy_count: 10, 
-        enemy_group_size: [2,3],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true,
-        name: "Royal Rat's Court", 
-        parent_location: locations["Sewer Depths"],
-        first_reward: {
-            xp: 700,
-        },
-        repeatable_reward: {
-            xp: 350,
-        }
-    });
-locations["Sewer Depths"].connected_locations.push({location: locations["Royal Rat's Court"], custom_text: "Royal Rat's Court"});
-
-
-locations["Curse Enemies"] = new Combat_zone({
-        description: "Curse Enemies", 
-		types: [{type: "dark", stage: 1,  xp_gain: 1}, {type: "cursed", stage: 1,  xp_gain: 1}],
-        enemies_list: ["Pinata"],
-        enemy_count: 10, 
-        enemy_group_size: [2,3],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true,
-        name: "Curse Enemies", 
-        parent_location: locations["Execution Chamber"],
-        first_reward: {
-            xp: 700,
-        },
-        repeatable_reward: {
-            xp: 350,
-        }
-    });
-locations["Execution Chamber"].connected_locations.push({location: locations["Curse Enemies"], custom_text: "Curse Enemies"});
-
-locations["Curse Enemies2"] = new Combat_zone({
-        description: "Curse Enemies2", 
-		types: [{type: "dark", stage: 1,  xp_gain: 5}, {type: "cursed", stage: 2,  xp_gain: 5}],
-        enemies_list: ["Pinata"],
-        enemy_count: 10, 
-        enemy_group_size: [2,3],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true,
-        name: "Curse Enemies2", 
-        parent_location: locations["Well of Souls"],
-        first_reward: {
-            xp: 7000,
-        },
-        repeatable_reward: {
-            xp: 3500,
-        }
-    });
-locations["Well of Souls"].connected_locations.push({location: locations["Curse Enemies2"], custom_text: "Curse Enemies2"});
-
-locations["Curse Enemies3"] = new Combat_zone({
-        description: "Curse Enemies3", 
-		types: [{type: "dark", stage: 2,  xp_gain: 10}, {type: "cursed", stage: 3,  xp_gain: 10}],
-        enemies_list: ["Pinata"],
-        enemy_count: 10, 
-        enemy_group_size: [2,3],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true,
-        name: "Curse Enemies3", 
-        parent_location: locations["Unholy Sanctum"],
-        first_reward: {
-            xp: 70000,
-        },
-        repeatable_reward: {
-            xp: 35000,
-        }
-    });
-locations["Unholy Sanctum"].connected_locations.push({location: locations["Curse Enemies3"], custom_text: "Curse Enemies3"});
-
-locations["Storm Enemies3"] = new Combat_zone({
-        description: "Storm Enemies3", 
-		types: [{type: "open", stage: 2,  xp_gain: 10}, {type: "bright", stage: 2,  xp_gain: 10}, {type: "thundering", stage: 3,  xp_gain: 10}],
-        enemies_list: ["Pinata"],
-        enemy_count: 10, 
-        enemy_group_size: [2,3],
-        enemy_stat_variation: 0.2,
-        is_unlocked: true,
-        name: "Storm Enemies3", 
-        parent_location: locations["The Maelstrom"],
-        first_reward: {
-            xp: 70000,
-        },
-        repeatable_reward: {
-            xp: 35000,
-        }
-    });
-locations["The Maelstrom"].connected_locations.push({location: locations["Storm Enemies3"], custom_text: "Storm Enemies3"});
 
 //combat zone types cheatsheet: bright 1/2/3, dark 1/2/3, narrow 1, open 1/2, hot 1/2/3, cold 1/2/3, unstable 1
 
@@ -2283,40 +2088,11 @@ locations["Well of Souls"].activities = {
             activity_name: "meditating",
             infinite: true,
             starting_text: "Sit down and meditate in the dense energy",
-            skill_xp_per_tick: 10000,
-            is_unlocked: true,
-        }),
-		 "manaexpansion": new LocationActivity({
-            activity_name: "manaexpansion",
-            infinite: true,
-            starting_text: "Circulate energies",
-            skill_xp_per_tick: 10000,
-            is_unlocked: true,
-        }),
-    };
-
-
-locations["Castle Barracks"].activities = {
-        "weightlifting": new LocationActivity({
-            activity_name: "weightlifting",
-            infinite: true,
-            starting_text: "Train with the knight's equipment",
-            skill_xp_per_tick: 5,
-            is_unlocked: true,
-        }),
-    };
-	
-locations["Laboratory"].activities = {
-        "running": new LocationActivity({
-            activity_name: "running",
-            infinite: true,
-            starting_text: "Use the strange running equipment",
             skill_xp_per_tick: 5,
             is_unlocked: true,
         }),
     };
 })();
-
 
 //add actions
 

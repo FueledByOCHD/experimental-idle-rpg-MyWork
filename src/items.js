@@ -142,9 +142,11 @@ function getEquipmentValue(components, quality) {
 class Item {
     constructor({name,
                 description,
-                value = 0, 
+                value = 0,
                 tags = {},
                 id = null,
+				gluttony_value = 0,
+				mana_value = 0,
                 })
     {
         this.name = name; 
@@ -157,6 +159,8 @@ class Item {
         this.value = value;
         this.tags = tags;
         this.tags["item"] = true;
+		this.gluttony_value = gluttony_value;
+		this.mana_value = mana_value;
     }
 
     getInventoryKey() {
@@ -789,6 +793,7 @@ class BookData{
 
 const book_stats = {};
 
+
 class Book extends Item {
     constructor(item_data) {
         super(item_data);
@@ -905,6 +910,58 @@ book_stats["Twist liek a snek"] = new BookData({
     },
 });
 
+book_stats["Ye olde dictionary"] = new BookData({
+    required_time: 320,
+    literacy_xp_rate: 2,
+    rewards: {
+        xp_multipliers: {
+            Literacy: 1.1,
+        }
+    },
+});
+
+book_stats["Joy of Mining"] = new BookData({
+    required_time: 120,
+    literacy_xp_rate: 1,
+    rewards: {
+        xp_multipliers: {
+            Mining: 1.1,
+        }
+    },
+});
+
+book_stats["Joy of Woodcutting"] = new BookData({
+    required_time: 120,
+    literacy_xp_rate: 1,
+    rewards: {
+        xp_multipliers: {
+            Woodcutting: 1.1,
+        }
+    },
+});
+
+book_stats["Power of Dreams"] = new BookData({
+    required_time: 60,
+    literacy_xp_rate: 1,
+    rewards: {
+        xp_multipliers: {
+            Sleeping: 1.1,
+        }
+    },
+});
+
+book_stats["TRUE ULTIMATE POWER"] = new BookData({
+    required_time: 1,
+    literacy_xp_rate: 1,
+    rewards: {
+        //skills: ["Mana Expansion"],
+		//skill_xp: {"Mana Expansion": 2000},
+    },
+});
+
+
+
+
 //books
 item_templates["ABC for kids"] = new Book({
     name: "ABC for kids",
@@ -924,6 +981,36 @@ item_templates["Twist liek a snek"] = new Book({
     value: 200,
 });
 
+item_templates["Ye olde dictionary"] = new Book({
+    name: "Ye olde dictionary",
+    description: "Ye olde dictionary",
+    value: 200,
+});
+
+
+item_templates["Joy of Mining"] = new Book({
+    name: "Joy of Mining",
+    description: "Joy of Mining",
+    value: 200,
+});
+
+item_templates["Joy of Woodcutting"] = new Book({
+    name: "Joy of Woodcutting",
+    description: "Joy of Woodcutting",
+    value: 200,
+});
+
+item_templates["Power of Dreams"] = new Book({
+    name: "Power of Dreams",
+    description: "Power of Dreams",
+    value: 100,
+});
+
+item_templates["TRUE ULTIMATE POWER"] = new Book({
+    name: "TRUE ULTIMATE POWER",
+    description: "TRUE ULTIMATE POWER",
+    value: 100,
+});
 
 //miscellaneous and loot:
 (function(){
@@ -2156,9 +2243,11 @@ item_templates["Twist liek a snek"] = new Book({
 
 //usables:
 (function(){
-    item_templates["Stale bread"] = new UsableItem({
-        name: "Stale bread", description: "Big piece of an old bread, still edible.", 
+item_templates["Stale bread"] = new UsableItem({
+        name: "Stale bread", 
+        description: "Big piece of an old bread, still edible.", 
         value: 20,
+		gluttony_value: 20,
         effects: [{effect: "Basic meal", duration: 60}],
     });
 
@@ -2166,6 +2255,7 @@ item_templates["Twist liek a snek"] = new Book({
         name: "Fresh bread", 
         description: "Freshly baked bread, delicious.", 
         value: 40,
+		gluttony_value: 100,
         effects: [{effect: "Basic meal", duration: 120}],
     });
 
@@ -2180,6 +2270,7 @@ item_templates["Twist liek a snek"] = new Book({
         name: "Oneberry juice", 
         description: "Tastes kinda nice and provides a quick burst of healing", 
         value: 80,
+		gluttony_value: 30,
         effects: [{effect: "Weak healing potion", duration: 10}],
     });
 
@@ -2187,6 +2278,7 @@ item_templates["Twist liek a snek"] = new Book({
         name: "Roasted rat meat", 
         description: "Smell might be fine now, but it still seems like a bad idea to eat it",
         value: 10,
+		gluttony_value: 150,
         effects: [{effect: "Cheap meat meal", duration: 30}, {effect: "Slight food poisoning", duration: 30}],
     });
 
@@ -2194,7 +2286,20 @@ item_templates["Twist liek a snek"] = new Book({
         name: "Roasted purified rat meat", 
         description: "Smells alright and should be safe to eat, yet you still have some doubts",
         value: 20,
+		gluttony_value: 300,
         effects: [{effect: "Cheap meat meal", duration: 30}],
+    });
+})();
+
+
+//
+(function(){
+    item_templates["1000 Years Pill"] = new UsableItem({
+        name: "1000 Years Pill", 
+        description: "1000 Years Pill",
+        value: 10000,
+		mana_value: 1000000,
+        effects: [{effect: "Minor magic boost", duration: 300}],
     });
 })();
 

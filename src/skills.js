@@ -30,7 +30,7 @@ class Skill {
     constructor({ skill_id, 
                   names, 
                   description, 
-                  max_level = 1000, 
+                  max_level = 60, 
                   max_level_coefficient = 1, 
                   max_level_bonus = 0, 
                   base_xp_cost = 40, 
@@ -38,7 +38,7 @@ class Skill {
                   get_effect_description = () => { return ''; }, 
                   parent_skill = null, 
                   rewards, 
-                  xp_scaling = 1.3,
+                  xp_scaling = 1.8,
                   is_unlocked = true,
                   category,
                 }) 
@@ -84,7 +84,7 @@ class Skill {
 
         this.rewards = rewards; //leveling rewards (and levels on which they are given)
 
-        this.xp_scaling = xp_scaling > 1 ? xp_scaling : 1.3;
+        this.xp_scaling = xp_scaling > 1 ? xp_scaling : 1.6;
         //how many times more xp needed for next level
     }
 
@@ -521,7 +521,7 @@ function format_skill_rewards(milestone){
     skills["Shield blocking"] = new Skill({skill_id: "Shield blocking", 
                                     names: {0: "Shield blocking"}, 
                                     description: "Ability to block attacks with shield", 
-                                    max_level: 50, 
+                                    max_level: 30, 
                                     max_level_bonus: 0.2,
                                     category: "Combat",
                                     get_effect_description: ()=> {
@@ -588,7 +588,9 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                                 }
                                             },
                                         }
-                                    }});                                
+                                    }});
+
+							
 })();
 
 //combat stances
@@ -598,7 +600,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                     description: "Knowledge on how to apply different stances in combat",
                                     base_xp_cost: 60,
                                     category: "Stance",
-                                    max_level: 50,
+                                    max_level: 30,
                                     get_effect_description: ()=> {
                                         return `Increases xp gains of all combat stance skills of level lower than this, x1.1 per level of difference`;
                                     },
@@ -610,7 +612,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the 'Quick Steps' stance`;
                                 }});
@@ -621,7 +623,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the "Crushing force" stance`;
                                 }});
@@ -632,7 +634,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the "Broad arc" stance`;
                                 }});
@@ -643,7 +645,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the 'Defensive Measures' stance`;
                                 }});
@@ -654,7 +656,7 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the 'Berserker's Stride' stance`;
                                 }});                  
@@ -665,10 +667,11 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                 max_level_coefficient: 2,
                                 base_xp_cost: 60,
                                 category: "Stance",
-                                max_level: 50,
+                                max_level: 30,
                                 get_effect_description: ()=> {
                                     return `Improves efficiency of the 'Flowing Water' stance`;
-                                }});         
+                                }}); 
+        
                                
 })();
 
@@ -732,8 +735,8 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                                     names: {0: "Night vision"},
                                     description: "Ability to see in darkness",
                                     base_xp_cost: 600,
-                                    xp_scaling: 1.3,
-                                    max_level: 20,
+                                    xp_scaling: 1.9,
+                                    max_level: 10,
                                     category: "Environmental",
                                     get_effect_description: () => {
                                         return `Reduces darkness penalty (except for 'pure darkness') by ^${Math.round(100-100*skills["Night vision"].current_level/skills["Night vision"].max_level)/100}`;
@@ -782,8 +785,8 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
                 names: {0: "Presence sensing"},
                 description: "Ability to sense a presence without using your eyes",
                 base_xp_cost: 60,
-                xp_scaling: 1.3,
-                max_level: 40,
+                xp_scaling: 2,
+                max_level: 20,
                 category: "Environmental",
                 get_effect_description: () => {
                     return `Reduces extreme darkness penalty by ^${Math.round(100-100*skills["Presence sensing"].current_level/skills["Presence sensing"].max_level)/100}`;
@@ -836,10 +839,39 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
         names: {0: "Heat resistance"},
         description: "Ability to survive and function in high temperatures",
         base_xp_cost: 100,
-        max_level: 100,
+        max_level: 40,
         category: "Environmental",
         get_effect_description: () => {
             return `Reduces penalty from hot locations`;
+        },
+	        rewards: {
+            milestones: {
+                3: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                5: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                7: {
+                    stats: {
+                       "strength": {flat: 1},
+                    }
+                },
+                10: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                12: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                }
+            }
         }
     });
     skills["Cold resistance"] = new Skill({
@@ -847,10 +879,39 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
         names: {0: "Cold resistance"},
         description: "Ability to survive and function in low temperatures",
         base_xp_cost: 100,
-        max_level: 100,
+        max_level: 40,
         category: "Environmental",
         get_effect_description: () => {
             return `Reduces penalty from cold locations`;
+        },
+        rewards: {
+            milestones: {
+                3: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                5: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                7: {
+                    stats: {
+                       "strength": {flat: 1},
+                    }
+                },
+                10: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                },
+                12: {
+                    stats: {
+                        max_health: {multiplier: 1.01},
+                    }
+                }
+            }
         }
     });
 
@@ -859,10 +920,49 @@ Multiplies attack speed and AP in unarmed combat by ${Math.round((skills["Unarme
         names: {0: "Dazzle resistance"},
         description: "Don't look at the sun, it's bad for your eyes",
         base_xp_cost: 60,
-        max_level: 100,
+        max_level: 30,
         category: "Environmental",
         get_effect_description: ()=> {
             return `Reduces hit and evasion penalty in super bright areas`;
+        },
+        max_level_bonus: 0.5
+    });
+	
+skills["Poison resistance"] = new Skill({
+        skill_id: "Poison resistance",
+        names: {0: "Poison resistance"},
+        description: "Poison resistance",
+        base_xp_cost: 60,
+        max_level: 30,
+        category: "Environmental",
+        get_effect_description: ()=> {
+            return `Reduces damage from poison`;
+        },
+        max_level_bonus: 0.5
+    });
+	
+skills["Curse resistance"] = new Skill({
+        skill_id: "Curse resistance",
+        names: {0: "Curse resistance"},
+        description: "Curse resistance",
+        base_xp_cost: 60,
+        max_level: 30,
+        category: "Environmental",
+        get_effect_description: ()=> {
+            return `Reduces effect of curses`;
+        },
+        max_level_bonus: 0.5
+    });
+	
+skills["Shock resistance"] = new Skill({
+        skill_id: "Shock resistance",
+        names: {0: "Shock resistance"},
+        description: "Shock resistance",
+        base_xp_cost: 60,
+        max_level: 30,
+        category: "Environmental",
+        get_effect_description: ()=> {
+            return `Reduces impact of storms`;
         },
         max_level_bonus: 0.5
     });
@@ -1142,8 +1242,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                                 description: "Even a simple action of plowing some fields, can be performed better with skills and experience",
                                 base_xp_cost: 40,
                                 category: "Activity",
-                                max_level: 50,
-                                xp_scaling: 1.3,
+                                max_level: 10,
+                                xp_scaling: 1.6,
                                 max_level_coefficient: 2,
                                 rewards: {
                                     milestones: {
@@ -1225,13 +1325,13 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
 //non-work activity related
 (function(){
     skills["Sleeping"] = new Skill({skill_id: "Sleeping",
-                                    names: {0: "Sleeping"}, 
+                                    names: {0: "Recovery"}, 
                                     description: "Good, regular sleep is the basis of getting stronger and helps your body heal.",
                                     base_xp_cost: 1000,
                                     visibility_treshold: 300,
-                                    xp_scaling: 1.3,
+                                    xp_scaling: 2,
                                     category: "Activity",
-                                    max_level: 50,
+                                    max_level: 10,
                                     max_level_coefficient: 2.5,    
                                     rewards: {
                                         milestones: {
@@ -1307,7 +1407,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                                 description: "Focus your mind",
                                 base_xp_cost: 200,
                                 category: "Activity",
-                                max_level: 60, 
+                                max_level: 30, 
                                 is_unlocked: false,
                                 visibility_treshold: 0,
                                 rewards: {
@@ -1358,6 +1458,11 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                                             }
                                         },
                                         10: {
+											unlocks: {
+                                                skills: [
+                                                   "Mana Expansion"
+                                                    ]
+                                                },
                                             stats: {
                                                 "intuition": {
                                                     flat: 2,
@@ -1375,8 +1480,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                             });                            
     skills["Running"] = new Skill({skill_id: "Running",
                                   description: "Great way to improve the efficiency of the body",
-                                  names: {0: "Running"},
-                                  max_level: 1000,
+                                  names: {0: "Athletics"},
+                                  max_level: 50,
                                   category: "Activity",
                                   max_level_coefficient: 2,
                                   base_xp_cost: 50,
@@ -1452,8 +1557,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                                 });
     skills["Weightlifting"] = new Skill({skill_id: "Weightlifting",
     description: "No better way to get stronger than by lifting heavy things",
-    names: {0: "Weightlifting"},
-    max_level: 1000,
+    names: {0: "Stength Training"},
+    max_level: 50,
     category: "Activity",
     max_level_coefficient: 4,
     base_xp_cost: 50,
@@ -1537,7 +1642,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
     description: "Nothing will throw you off your balance (at least the physical one)",
     names: {0: "Equilibrium"},
     category: "Activity",
-    max_level: 1000,
+    max_level: 50,
     max_level_coefficient: 4,
     base_xp_cost: 50,
     rewards: {
@@ -1613,7 +1718,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         category: "Activity",
         base_xp_cost: 10,
         visibility_treshold: 4,
-        xp_scaling: 1.3,
+        xp_scaling: 1.6,
     });
 
     skills["Mining"] = new Skill({skill_id: "Mining",
@@ -1622,7 +1727,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         category: "Activity",
         base_xp_cost: 10,
         visibility_treshold: 4,
-        xp_scaling: 1.3,
+        xp_scaling: 1.6,
     });
 
     skills["Herbalism"] = new Skill({skill_id: "Herbalism",
@@ -1641,7 +1746,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         category: "Activity",
         base_xp_cost: 10,
         visibility_treshold: 4,
-        xp_scaling: 1.3,
+        xp_scaling: 1.6,
     });
 })();
 
@@ -1653,8 +1758,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "The art of preparing different elements and assembling them together",
         category: "Crafting",
         base_xp_cost: 40,
-        xp_scaling: 1.3,
-        max_level: 200,
+        xp_scaling: 1.5,
+        max_level: 60,
     });
     skills["Smelting"] = new Skill({
         skill_id: "Smelting", 
@@ -1662,8 +1767,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Turning raw ore into raw metal",
         category: "Crafting",
         base_xp_cost: 40,
-        xp_scaling: 1.3,
-        max_level: 200,
+        xp_scaling: 1.5,
+        max_level: 60,
     });
     skills["Forging"] = new Skill({
         skill_id: "Forging", 
@@ -1671,8 +1776,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Turning raw metal into something useful",
         category: "Crafting",
         base_xp_cost: 40,
-        xp_scaling: 1.3,
-        max_level: 200,
+        xp_scaling: 1.5,
+        max_level: 60,
     });
     skills["Cooking"] = new Skill({
         skill_id: "Cooking", 
@@ -1680,8 +1785,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Making the unedible edible",
         category: "Crafting",
         base_xp_cost: 40,
-        xp_scaling: 1.3,
-        max_level: 200,
+        xp_scaling: 1.5,
+        max_level: 60,
     });
     skills["Alchemy"] = new Skill({
         skill_id: "Alchemy", 
@@ -1689,8 +1794,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Extracting and enhancing useful properties of the ingredies",
         category: "Crafting",
         base_xp_cost: 40,
-        xp_scaling: 1.3,
-        max_level: 200,
+        xp_scaling: 1.5,
+        max_level: 60,
     });
 })();
 
@@ -1702,8 +1807,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         names: {0: "Tough skin", 5: "Wooden skin", 10: "Iron skin"},
         description: "As it gets damaged, your skin regenerates to be tougher and tougher",
         base_xp_cost: 400,
-        xp_scaling: 1.3,
-        max_level: 100,
+        xp_scaling: 1.9,
+        max_level: 30,
         max_level_bonus: 30,
         get_effect_description: ()=> {
             return `Increases base defense by ${Math.round(skills["Iron skin"].get_level_bonus())}`;
@@ -1748,7 +1853,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Being tired is not a reason to give up",
         base_xp_cost: 60,
         category: "Character",
-        max_level: 100,
+        max_level: 30,
         get_effect_description: ()=> {
             return `Increases low stamina stat multiplier to x${(50+Math.round(skills["Persistence"].get_level_bonus()*100000)/1000)/100} (originally x0.5)`;
         },
@@ -1793,6 +1898,11 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                     xp_multipliers: {
                         all: 1.05,
                     }
+                },
+				25: {
+                    stats: {
+                        stamina_regeneration_flat: {flat:1},
+                    }
                 }
 
             }
@@ -1820,8 +1930,8 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "Ability to read and understand written text",
         category: "Character",
         base_xp_cost: 120,
-        max_level: 20,
-        xp_scaling: 1.3,
+        max_level: 10,
+        xp_scaling: 2,
         get_effect_description: ()=> {
             return `Allows reading harder books`;
         },
@@ -1835,6 +1945,16 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
                 2: {
                     xp_multipliers: {
                         all_skill: 1.05,
+                    }
+                },
+                5: {
+                    xp_multipliers: {
+                        hero: 1.10,
+                    }
+                },
+                10: {
+                    xp_multipliers: {
+                        all_skill: 1.10,
                     }
                 }
             }
@@ -1850,7 +1970,7 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
         description: "The art of the deal",
         category: "Character",
         base_xp_cost: 100,
-        max_level: 40,
+        max_level: 25,
         get_effect_description: ()=> {
             return `Lowers trader cost multiplier to ${Math.round((1 - skills["Haggling"].get_level_bonus())*100)}% of original value`;
         },
@@ -1859,4 +1979,304 @@ Multiplies AP with daggers by ${Math.round((skills["Daggers"].get_coefficient("m
     
 })();
 
-export {skills, get_unlocked_skill_rewards, get_next_skill_milestone, weapon_type_to_skill, which_skills_affect_skill};
+(function(){
+    skills["Gluttony"] = new Skill({
+        skill_id: "Gluttony",
+        names: {0: "Gluttony"},
+        description: "Gluttony",
+        category: "Character",
+        base_xp_cost: 100,
+        max_level: 25,
+		max_level_bonus: 250,
+		get_effect_description: ()=> {
+            return `Increases base max health by ${Math.round(skills["Gluttony"].get_level_bonus())}`;
+        },
+    });
+    
+})();
+
+(function(){
+    skills["Resilience"] = new Skill({
+        skill_id: "Resilience",
+        names: {0: "Resilience"},
+        description: "Resilience",
+        category: "Combat",
+        base_xp_cost: 100,
+        max_level: 30,
+		max_level_bonus: 30,
+		get_effect_description: ()=> {
+            return `Below 50% HP increases base defense by ${Math.round(skills["Resilience"].get_level_bonus())}`;
+        },
+    });
+    
+})();
+
+(function(){
+    skills["Last Stand"] = new Skill({
+        skill_id: "Last Stand",
+        names: {0: "Last Stand"},
+        description: "Last Stand",
+        category: "Combat",
+        base_xp_cost: 30,
+        max_level: 30,
+		max_level_bonus: 30,
+		get_effect_description: ()=> {
+            return `Below 10% HP increases base strength by ${Math.round(skills["Last Stand"].get_level_bonus())}`;
+        },
+    });
+    
+})();
+
+(function(){
+   skills["Battling"] = new Skill({skill_id: "Battling", 
+                                names: {0: "Battling", 15: "Battle Master"}, 
+                                description: "Fighting even opponents.", 
+                                category: "Combat",
+								
+	});		
+    
+})();
+
+(function(){
+   skills["Criticality"] = new Skill({skill_id: "Criticality", 
+                                names: {0: "Criticality"}, 
+                                description: "Criticality", 
+                                category: "Combat",
+								max_level_bonus: 0.3,
+								get_effect_description: ()=> {
+										return `Increases crit rate by ${skills["Criticality"].get_level_bonus().toPrecision(3)}`;
+								},
+								
+	});	
+})();
+
+(function(){
+   skills["Obliteration"] = new Skill({skill_id: "Obliteration", 
+                                names: {0: "Obliteration"}, 
+                                description: "Obliteration", 
+                                category: "Combat",
+								max_level_bonus: 1,
+								get_effect_description: ()=> {
+										return `Increases crit multiplier by ${skills["Obliteration"].get_level_bonus().toPrecision(3)}`;
+								},
+								
+	});	
+})();
+
+(function(){
+   skills["Mana Expansion"] = new Skill({skill_id: "Mana Expansion", 
+                                names: {0: "Mana Expansion"}, 
+                                description: "Mana Expansion", 
+                                category: "Magic",
+								max_level: 100,
+								max_level_bonus: 100,
+								xp_scaling: 1.4,
+								is_unlocked: false,
+								visibility_treshold: 0,
+								get_effect_description: ()=> {
+										return `Increases Mana by ${skills["Mana Expansion"].get_level_bonus()}`;
+								},
+	});	
+})();
+
+(function(){
+    skills["Mana Control"] = new Skill({skill_id: "Mana Control",
+                                  description: "Mana Control",
+                                  names: {0: "Mana Control", 40: "Mana Mastery" },
+                                  max_level: 50,
+                                  category: "Magic",
+                                  max_level_coefficient: 2,
+                                  base_xp_cost: 50,
+                                  rewards: {
+                                    milestones: {
+                                        1: {
+                                            stats: {
+                                                intuition: {
+                                                    flat: 1
+                                                },
+                                            }
+                                        },
+                                        3: {
+                                            stats: {
+                                                intuition: {
+                                                    flat: 1
+                                                },
+                                            }
+                                        },
+                                        5: {
+                                            stats: {
+                                                intuition: {
+                                                    flat: 1,
+                                                }
+                                            },                                          
+                                        },
+                                        7: {
+                                            stats: {
+                                                magic: {
+                                                    flat: 1,
+                                                    multiplier: 1.05,
+                                                }
+                                            },
+                                        },
+                                        10: {
+                                            stats: {
+                                                intuition: {
+                                                    flat: 1,
+                                                    multiplier: 1.05,
+                                                }
+                                            },
+                                        },
+                                        25: {
+                                            stats: {
+                                                magic: {
+                                                    flat: 2
+                                                },
+                                                mana_regeneration_flat: {
+                                                    flat: 1
+                                                }
+                                            },
+                                        }
+                                    }
+                                  },
+                                  get_effect_description: ()=> {
+                                    let value = skills["Mana Control"].get_coefficient("multiplicative");
+                                    if(value >= 100) {
+                                        value = Math.round(value);
+                                    } else if(value >= 10 && value < 100) {
+                                        value = Math.round(value*10)/10; 
+                                    } else {
+                                        value = Math.round(value*100)/100;
+                                    }
+                                    return `Multiplies mana efficiency by ${value}`;
+                                  },
+                                  
+                                });
+})();
+
+(function(){
+    skills["Magic Mastery"] = new Skill({skill_id: "Magic Mastery", 
+                                names: {0: "Magic Mastery"}, 
+                                parent_skill: "Stance mastery",
+                                description: "Magic Mastery", 
+                                max_level_coefficient: 2,
+                                base_xp_cost: 60,
+                                category: "Stance",
+                                max_level: 30,
+								max_level_bonus: 30,
+                                get_effect_description: ()=> {
+                                    return `Improves efficiency of the 'Magic Stance' stance`;
+                                }}); 
+        
+})();        
+
+(function(){
+    skills["Magic Potency"] = new Skill({skill_id: "Magic Potency", 
+                                names: {0: "Magic Potency"}, 
+                                category: "Magic",
+                                description: "Magic Potency", 
+                                max_level_coefficient: 2,
+                                base_xp_cost: 60,
+                                get_effect_description: ()=> {
+                                    return `Multiplies magic by ${Math.round(skills["Magic Potency"].get_coefficient("multiplicative")*1000)/1000}`;
+                                }});
+})();
+                   
+
+(function(){
+    skills["Undying"] = new Skill({skill_id: "Undying", 
+                                names: {0: "Death Resistance", 15: "Undying"}, 
+                                category: "Combat",
+                                description: "Brushes with death have made you hard to kill.", 
+                                max_level_coefficient: 2,
+                                base_xp_cost: 60,
+                                get_effect_description: ()=> {
+                                    return `Multiplies max health by ${Math.round(skills["Undying"].get_coefficient("multiplicative")*1000)/1000}`;
+                                }});
+})();
+
+
+
+(function(){
+   skills["Man Slayer"] = new Skill({skill_id: "Man Slayer", 
+                                names: {0: "Man Slayer"},
+								max_level_coefficient: 1.5,
+                                description: "Man Slayer", 
+                                category: "Exterminator",
+	});	
+   skills["Dragon Slayer"] = new Skill({skill_id: "Dragon Slayer", 
+                                names: {0: "Dragon Slayer"},
+								max_level_coefficient: 1.5,								
+                                description: "Dragon Slayer", 
+                                category: "Exterminator",
+	});	
+   skills["Slime Culler"] = new Skill({skill_id: "Slime Culler", 
+                                names: {0: "Slime Culler"},
+								max_level_coefficient: 1.5,
+                                description: "Slime Culler", 
+                                category: "Exterminator",
+	});
+   skills["Smasher"] = new Skill({skill_id: "Smasher", 
+                                names: {0: "Smasher"},
+								max_level_coefficient: 1.5,
+                                description: "Smasher", 
+                                category: "Exterminator",
+	});	
+   skills["Purifier"] = new Skill({skill_id: "Purifier", 
+                                names: {0: "Purifier"}, 
+                                max_level_coefficient: 1.5,
+								description: "Purifier", 
+                                category: "Exterminator",
+	});	
+   skills["Exorcist"] = new Skill({skill_id: "Exorcist", 
+                                names: {0: "Exorcist"}, 
+                                max_level_coefficient: 1.5,
+								description: "Exorcist", 
+                                category: "Exterminator",
+	});
+   skills["Hunter"] = new Skill({skill_id: "Hunter", 
+                                names: {0: "Hunter"}, 
+                                max_level_coefficient: 1.5,
+								description: "Hunter", 
+                                category: "Exterminator",
+	});
+   skills["Monster Hunter"] = new Skill({skill_id: "Monster Hunter", 
+                                names: {0: "Monster Hunter"}, 
+                                max_level_coefficient: 1.5,
+								description: "Monster Hunter", 
+                                category: "Exterminator",
+	});	
+   skills["Exterminator"] = new Skill({skill_id: "Exterminator", 
+                                names: {0: "Exterminator"}, 
+                                max_level_coefficient: 1.5,
+								description: "Exterminator", 
+                                category: "Exterminator",
+	});
+   skills["Defroster"] = new Skill({skill_id: "Defroster", 
+                                names: {0: "Defroster"}, 
+                                max_level_coefficient: 1.5,
+								description: "Defroster", 
+                                category: "Exterminator",
+	});
+   skills["Extinguisher"] = new Skill({skill_id: "Extinguisher", 
+                                names: {0: "Extinguisher"}, 
+                                max_level_coefficient: 1.5,
+								description: "Extinguisher", 
+                                category: "Exterminator",
+	});
+})();
+
+const enemy_tag_to_skill = {
+    "animated": "Smasher",
+    "undead": "Purifier",
+    "dragonoid": "Dragon Slayer",
+    "amorphous": "Slime Culler",
+    "humanoid": "Man Slayer",
+    "spirit": "Exorcist",
+    "fire": "Extinguisher",
+	"ice": "Defroster",
+	"arthropod": "Exterminator",
+	"abomination": "Monster Hunter",
+	"beast": "Hunter",			
+};
+
+export {skills, get_unlocked_skill_rewards, get_next_skill_milestone, weapon_type_to_skill, which_skills_affect_skill, enemy_tag_to_skill};

@@ -4,7 +4,7 @@ import { InventoryHaver } from "./inventory.js";
 import { skills, weapon_type_to_skill } from "./skills.js";
 import { update_displayed_character_inventory, update_displayed_equipment, 
          update_displayed_stats,
-         update_displayed_health, update_displayed_stamina, 
+         update_displayed_health, update_displayed_stamina, update_displayed_mana,
          update_displayed_skill_xp_gain, update_all_displayed_skills_xp_gain,
          update_displayed_xp_bonuses } from "./display.js";
 import { active_effects, current_location, current_stance } from "./main.js";
@@ -45,7 +45,8 @@ character.base_stats = {
         attack_speed: 1, 
         crit_rate: 0.05, 
         crit_multiplier: 1.3,
-        attack_power: 0, 
+        attack_power: 0,
+		magic_power: 0,		
         defense: 0,
         block_strength: 0,
         block_chance: 0,
@@ -110,7 +111,7 @@ character.money = 0;
 const base_xp_cost = 10;
 character.xp = {
         current_level: 0, total_xp: 0, current_xp: 0, xp_to_next_lvl: base_xp_cost, 
-        total_xp_to_next_lvl: base_xp_cost, base_xp_cost: base_xp_cost, xp_scaling: 1.8
+        total_xp_to_next_lvl: base_xp_cost, base_xp_cost: base_xp_cost, xp_scaling: 1.4
 };
 character.starting_xp = character.xp;
 
@@ -339,12 +340,29 @@ character.stats.add_weapon_type_bonuses = function() {
  */
 character.stats.add_all_skill_level_bonus = function() {
         character.stats.flat.skills.defense = skills["Iron skin"].get_level_bonus();
+		character.stats.flat.skills.crit_rate = skills["Criticality"].get_level_bonus();
+		character.stats.flat.skills.crit_multiplier = skills["Obliteration"].get_level_bonus();
+		character.stats.flat.skills.max_health = skills["Gluttony"].get_level_bonus();
+		character.stats.flat.skills.max_mana = skills["Mana Expansion"].get_level_bonus();
+		character.stats.flat.skills.magic = skills["Magic Mastery"].get_level_bonus();
         character.stats.multiplier.skills.stamina_efficiency = skills["Running"].get_coefficient("multiplicative");
+		character.stats.multiplier.skills.mana_efficiency = skills["Mana Control"].get_coefficient("multiplicative");
+		character.stats.multiplier.skills.magic = skills["Magic Potency"].get_coefficient("multiplicative");
         character.stats.multiplier.skills.strength = skills["Weightlifting"].get_coefficient("multiplicative");
         character.stats.multiplier.skills.block_strength = 1 + 5*skills["Shield blocking"].get_level_bonus();
         character.stats.multiplier.skills.agility = skills["Equilibrium"].get_coefficient("multiplicative");
+		character.stats.multiplier.skills.max_health = skills["Undying"].get_coefficient("multiplicative");
         
         character.stats.add_weapon_type_bonuses();
+		
+	if(character.stats.full.health < 0.5*(character.stats.full.max_health)) {
+        character.stats.flat.skills.defense = skills["Iron skin"].get_level_bonus()+skills["Resilience"].get_level_bonus();
+    }
+
+	if(character.stats.full.health < 0.1*(character.stats.full.max_health)) {
+       character.stats.flat.skills.strength = skills["Last Stand"].get_level_bonus();
+    }
+
 }
 
 /**
@@ -447,7 +465,11 @@ character.update_stats = function () {
         character.stats.full.attack_power = (character.stats.full.strength/10) * character.stats.total_multiplier.attack_power;
     }
     
-    character.stats.total_flat.attack_power = character.stats.full.attack_power/character.stats.total_multiplier.attack_power;
+    character.stats.full.magic_power = (character.stats.full.magic) * character.stats.total_multiplier.magic_power;
+		
+	character.stats.total_flat.attack_power = character.stats.full.attack_power/character.stats.total_multiplier.attack_power;
+	character.stats.total_flat.magic_power = character.stats.full.magic_power/character.stats.total_multiplier.magic_power;
+
     Object.keys(character.xp_bonuses.total_multiplier).forEach(bonus_target => {
         character.xp_bonuses.total_multiplier[bonus_target] = (character.xp_bonuses.multiplier.levels[bonus_target] || 1) * (character.xp_bonuses.multiplier.skills[bonus_target] || 1) * (character.xp_bonuses.multiplier.books[bonus_target] || 1); 
         //only this two sources as of now
@@ -481,8 +503,13 @@ character.get_attack_speed = function () {
         return spd;
 }
 
+
 character.get_attack_power = function () {
         return character.stats.full.attack_power * character.get_stamina_multiplier();
+}
+
+character.get_magic_power = function () {
+        return character.stats.full.magic_power;
 }
 
 character.wears_armor = function () {
@@ -624,7 +651,7 @@ function update_character_stats() {
         update_displayed_health();
         update_displayed_stamina();
         
-        //update_displayed_mana();
+        update_displayed_mana();
 }
 
 /**

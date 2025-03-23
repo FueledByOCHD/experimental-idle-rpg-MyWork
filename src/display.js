@@ -9,7 +9,7 @@ import { current_enemies, options,
     active_effects, enough_time_for_earnings, 
     get_current_book, last_location_with_bed, 
     last_combat_location, faved_stances, 
-    selected_stance, 
+    selected_stance, current_stance,
     global_flags} from "./main.js";
 import { dialogues } from "./dialogues.js";
 import { activities } from "./activities.js";
@@ -55,6 +55,10 @@ const current_health_bar = document.getElementById("character_healthbar_current"
 const current_stamina_value_div = document.getElementById("character_stamina_value");
 const current_stamina_bar = document.getElementById("character_stamina_bar_current");
 
+//character mana display
+const current_mana_value_div = document.getElementById("character_mana_value");
+const current_mana_bar = document.getElementById("character_mana_bar_current");
+
 //character xp display
 const character_xp_div = document.getElementById("character_xp_div");
 const character_level_div = document.getElementById("character_level_div");
@@ -71,6 +75,8 @@ const skill_list = document.getElementById("skill_list");
 const stance_bar_divs = {};
 const stance_list = document.getElementById("stance_list");
 
+const magic_list = document.getElementById("magic_list");
+
 const bestiary_entry_divs = {};
 const bestiary_list = document.getElementById("bestiary_list");
 
@@ -80,7 +86,8 @@ const inventory_switch = document.getElementById("switch_to_inventory")
 const data_entry_divs = {
                             character: document.getElementById("character_xp_multiplier"),
                             skills: document.getElementById("skills_xp_multiplier"),
-                            stamina: document.getElementById("stamina_efficiency_multiplier")
+                            stamina: document.getElementById("stamina_efficiency_multiplier"),
+							mana: document.getElementById("mana_efficiency_multiplier")
                         };
 
 let skill_sorting = "name";
@@ -104,9 +111,10 @@ const message_count = {
 const stats_divs = {strength: document.getElementById("strength_slot"), agility: document.getElementById("agility_slot"),
                     dexterity: document.getElementById("dexterity_slot"), intuition: document.getElementById("intuition_slot"),
                     magic: document.getElementById("magic_slot"), 
-                    attack_speed: document.getElementById("attack_speed_slot"), attack_power: document.getElementById("attack_power_slot"), 
+                    attack_speed: document.getElementById("attack_speed_slot"),
                     defense: document.getElementById("defense_slot"), crit_rate: document.getElementById("crit_rate_slot"), 
-                    crit_multiplier: document.getElementById("crit_multiplier_slot")
+                    crit_multiplier: document.getElementById("crit_multiplier_slot"), 
+					attack_power: document.getElementById("attack_power_slot")
                     };
 
 const other_combat_divs = {attack_points: document.getElementById("hit_chance_slot"), defensive_action: document.getElementById("defensive_action_slot"),
@@ -402,7 +410,8 @@ function create_effect_tooltip(effect_name, duration) {
             const sign = stat_value.percent > 0? "+":"";
             tooltip.innerHTML += `: ${sign}${stat_value.flat}%`;
         } else {
-            //
+           const sign = stat_value.flat > 0? "+":"";
+		   tooltip.innerHTML += `: ${sign}${stat_value.flat}`;
         }
     }
 
@@ -2408,6 +2417,11 @@ function update_displayed_stamina() { //call it when eating, resting or fighting
     current_stamina_value_div.innerText = Math.round(character.stats.full.stamina) + "/" + Math.round(character.stats.full.max_stamina) + " stamina";
     current_stamina_bar.style.width = (character.stats.full.stamina*100/character.stats.full.max_stamina).toString() +"%";
 }
+function update_displayed_mana() { //call it when using healing items, resting or getting hit
+    current_mana_value_div.innerText = Math.round(character.stats.full.mana) + "/" + Math.round(character.stats.full.max_mana) + " mana";
+    current_mana_bar.style.width = (character.stats.full.mana*100/character.stats.full.max_mana).toString() +"%";
+}
+
 
 function update_displayed_stats() { //updates displayed stats
 
@@ -2418,8 +2432,11 @@ function update_displayed_stats() { //updates displayed stats
         else if(key === "attack_speed") {
             stats_divs[key].innerHTML = `${(character.get_attack_speed()).toFixed(1)}`;
         }
-        else if(key === "attack_power") {
+        else if(key === "attack_power" && stances[current_stance].stance_type === "Physical") {
             stats_divs[key].innerHTML = `${(character.get_attack_power()).toFixed(1)}`;
+        }
+        else if(key === "attack_power" && stances[current_stance].stance_type === "Magical") {
+            stats_divs[key].innerHTML = `${(character.get_magic_power()).toFixed(1)}`;
         }
         else {
             stats_divs[key].innerHTML = `${(character.stats.full[key]).toFixed(1)}`;
@@ -2453,7 +2470,17 @@ function update_displayed_stats() { //updates displayed stats
     update_stat_description("defensive_points");
     update_stat_description("attack_points");
 
+
+if (stances[current_stance].stance_type === "Physical") {
     attack_stats.children[0].innerHTML = `Atk pwr: ${Math.round(character.get_attack_power()*10)/10}`;
+} else if (stances[current_stance].stance_type === "Magical") {
+	attack_stats.children[0].innerHTML = `Mgc pwr: ${Math.round(character.get_magic_power()*10)/10}`;
+} else {
+    attack_stats.children[0].innerHTML = `Atk pwr: ${Math.round(character.get_attack_power()*10)/10}`;
+}
+
+
+
     attack_stats.children[1].innerHTML = `Atk spd: ${Math.round(character.get_attack_speed()*100)/100}`;
     attack_stats.children[2].innerHTML = `AP:  ${Math.round(ap)}`;
     attack_stats.children[4].innerHTML = `Def: ${Math.round(character.stats.full.defense)} `;
@@ -2469,12 +2496,18 @@ function update_stat_description(stat) {
     } else {
         return;
     }
+	
+	
 
     if(stat === "attack_power") {
         target.innerHTML = 
         `<br>Breakdown:
         <br>Base value (weapon * str/10): ${Math.round(100* character.stats.total_flat.attack_power)/100}`;
-    } else if (stat === "attack_points"){
+    } else if (stat === "magic_power"){
+        target.innerHTML = 
+        `<br>Breakdown:
+        <br>Base value (mgc * 10): ${Math.round(100* character.stats.total_flat.magic_power)/100}`;
+    }else if (stat === "attack_points"){
         target.innerHTML = 
         `<br>Breakdown:
         <br>Base value: ${Math.round(100* character.stats.total_flat.attack_points)/100}`;
@@ -2577,16 +2610,24 @@ function update_displayed_character_xp(did_level = false) {
     character_xp_div
         character_xp_bar_max
             character_xp_bar_current
-        charaxter_xp_value
+        character_xp_value
     */
-    character_xp_div.children[0].children[0].style.width = `${100*character.xp.current_xp/character.xp.xp_to_next_lvl}%`;
-    character_xp_div.children[1].innerText = `${Math.floor(character.xp.current_xp)}/${Math.ceil(character.xp.xp_to_next_lvl)} xp`;
+    character_xp_div.children[0].children[0].style.width = `${100 * character.xp.current_xp / character.xp.xp_to_next_lvl}%`;
+    let currentXp = character.xp.current_xp;
+    let xpToNextLvl = character.xp.xp_to_next_lvl;
 
-    if(did_level) {
+    // Check if the values exceed a billion
+    let formattedCurrentXp = (currentXp >= 1000000000) ? currentXp.toExponential(2) : Math.floor(currentXp).toLocaleString();
+    let formattedXpToNextLvl = (xpToNextLvl >= 1000000000) ? xpToNextLvl.toExponential(2) : Math.ceil(xpToNextLvl).toLocaleString();
+
+    character_xp_div.children[1].innerText = `${formattedCurrentXp}/${formattedXpToNextLvl} xp`;
+
+    if (did_level) {
         character_level_div.innerText = `Level: ${character.xp.current_level}`;
         update_displayed_health();
     }
 }
+
 
 function update_displayed_xp_bonuses() {
     data_entry_divs.character.innerHTML = `<span class="data_entry_name">Base hero xp gain:</span><span class="data_entry_value">x${Math.round(100*get_hero_xp_gain())/100}</span>`;
@@ -2595,6 +2636,10 @@ function update_displayed_xp_bonuses() {
 
 function update_displayed_stamina_efficiency() {
     data_entry_divs.stamina.innerHTML = `<span class="data_entry_name">Stamina efficiency:</span><span class="data_entry_value">${Math.round(100*character.stats.full.stamina_efficiency)/100 || 1}</span>`;
+}
+
+function update_displayed_mana_efficiency() {
+    data_entry_divs.mana.innerHTML = `<span class="data_entry_name">Mana efficiency:</span><span class="data_entry_value">${Math.round(100*character.stats.full.mana_efficiency)/100 || 1}</span>`;
 }
 
 function update_displayed_dialogue(dialogue_key) {
@@ -3120,6 +3165,7 @@ function create_stance_tooltip(stance_id) {
     `<div>${stances[stance_id].name}</div><br>
     <div>${stances[stance_id].getDescription()}</div><br>
     <div>Stamina cost: ${stances[stance_id].stamina_cost}</div>
+	<div>Mana cost: ${stances[stance_id].mana_cost}</div>
     <div class='stance_tooltip_stats'>${create_stance_tooltip_stats(stances[stance_id])}</div`;
 
     let target_count = stances[stance_id].target_count;
@@ -3519,6 +3565,7 @@ export {
     update_displayed_equipment,
     update_displayed_health,
     update_displayed_stamina,
+	update_displayed_mana,
     update_displayed_stats,
     update_displayed_effects,
     update_displayed_effect_durations,
@@ -3549,6 +3596,7 @@ export {
     update_displayed_xp_bonuses,
     update_displayed_stance_list,
     update_displayed_stamina_efficiency,
+	update_displayed_mana_efficiency,
     update_displayed_stance,
     update_displayed_faved_stances,
     update_stance_tooltip,

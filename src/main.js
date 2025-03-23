@@ -3,7 +3,7 @@
 import { current_game_time } from "./game_time.js";
 import { item_templates, getItem, book_stats, setLootSoldCount, loot_sold_count, recoverItemPrices, rarity_multipliers, getArmorSlot} from "./items.js";
 import { locations } from "./locations.js";
-import { skills, weapon_type_to_skill, which_skills_affect_skill } from "./skills.js";
+import { skills, weapon_type_to_skill, which_skills_affect_skill, enemy_tag_to_skill } from "./skills.js";
 import { dialogues } from "./dialogues.js";
 import { enemy_killcount } from "./enemies.js";
 import { traders } from "./traders.js";
@@ -21,7 +21,7 @@ import { end_activity_animation,
          update_displayed_enemies, update_displayed_health_of_enemies,
          update_displayed_combat_location, update_displayed_normal_location,
          log_loot, update_displayed_equipment,
-         update_displayed_health, update_displayed_stamina,
+         update_displayed_health, update_displayed_stamina, update_displayed_mana,
          format_money, update_displayed_stats,
          update_displayed_effects, update_displayed_effect_durations,
          update_displayed_time, update_displayed_character_xp, 
@@ -35,7 +35,7 @@ import { end_activity_animation,
          update_bestiary_entry,
          start_reading_display,
          update_displayed_xp_bonuses, 
-         update_displayed_skill_xp_gain, update_all_displayed_skills_xp_gain, update_displayed_stance_list, update_displayed_stamina_efficiency, update_displayed_stance, update_displayed_faved_stances, update_stance_tooltip,
+         update_displayed_skill_xp_gain, update_all_displayed_skills_xp_gain, update_displayed_stance_list, update_displayed_stamina_efficiency, update_displayed_mana_efficiency, update_displayed_stance, update_displayed_faved_stances, update_stance_tooltip,
          update_gathering_tooltip,
          open_crafting_window,
          update_displayed_location_types,
@@ -82,6 +82,8 @@ let total_deaths = 0;
 let total_crafting_attempts = 0;
 let total_crafting_successes = 0;
 let total_kills = 0;
+let tags_bonus = 1;
+let type_bonus = 1;
 
 //current enemy
 let current_enemies = null;
@@ -92,6 +94,7 @@ let enemy_timer_variance_accumulator = [];
 let enemy_timer_adjustment = [];
 let enemy_timers = [];
 let character_attack_loop;
+
 
 //current location
 let current_location;
@@ -310,6 +313,7 @@ function change_location(location_name) {
             last_combat_location = current_location.name;
         }
     }
+	//console.log(location)  // enable for debugging purposes
 }
 
 
@@ -483,6 +487,19 @@ function do_resting() {
         
         update_displayed_stamina();
     }
+
+    if(character.stats.full.mana < character.stats.full.max_mana)
+    {
+        const resting_mana_ammount = Math.round(Math.max(character.stats.full.max_mana/120, 2)); 
+        //todo: scale it with skill as well
+
+        character.stats.full.mana += (resting_mana_ammount);
+        if(character.stats.full.mana > character.stats.full.max_mana) {
+            character.stats.full.mana = character.stats.full.max_mana;
+        } 
+        
+        update_displayed_mana();
+    }
 }
 
 function do_sleeping() {
@@ -507,6 +524,18 @@ function do_sleeping() {
             character.stats.full.stamina = character.stats.full.max_stamina;
         } 
         update_displayed_stamina();
+    }
+	
+    if(character.stats.full.mana < character.stats.full.max_mana)
+    {
+        const sleeping_mana_ammount = Math.round(Math.max(character.stats.full.max_mana/30, 5) * (1 + skills["Sleeping"].current_level/skills["Sleeping"].max_level)); 
+        //todo: scale it with skill as well
+
+        character.stats.full.mana += (sleeping_mana_ammount);
+        if(character.stats.full.mana > character.stats.full.max_mana) {
+            character.stats.full.mana = character.stats.full.max_mana;
+        } 
+        update_displayed_mana();
     }
 }
 
@@ -927,44 +956,58 @@ function clear_enemy_attack_loop(enemy_id) {
 function set_character_attack_loop({base_cooldown}) {
     clear_character_attack_loop();
 
-    //little safety, as this function would occasionally throw an error due to not having any enemies left 
+    // little safety, as this function would occasionally throw an error due to not having any enemies left 
     //(can happen on forced leave after first win)
-    if(!current_enemies) {
+    if (!current_enemies) {
         return;
     }
 
-    //tries to switch stance back to the one that was actually selected if there's enough stamina, otherwise tries to switch stance to "normal" if not enough stamina
-    if(character.stats.full.stamina >= (stances[selected_stance].stamina_cost / character.stats.full.stamina_efficiency)){ 
-        if(selected_stance !== current_stance) {
+    // Tries to switch stance back to the one that was actually selected if there's enough stamina, 
+    // otherwise tries to switch stance to "normal" if not enough stamina
+	//this correcly switched out of stances if you don't meet stamina or mana cost, but doesn't seem to update that it's switched you back into normal stance. but stat total show that it has.
+    if ((character.stats.full.stamina >= (stances[selected_stance].stamina_cost / character.stats.full.stamina_efficiency)) && (character.stats.full.mana >= (stances[selected_stance].mana_cost / character.stats.full.mana_efficiency))) {
+        if (selected_stance !== current_stance) {
             change_stance(selected_stance);
+			update_displayed_stance();
             return;
         }
-    } else if(current_stance !== "normal") {
+    } else if (current_stance !== "normal") {
         change_stance("normal", true);
+		update_displayed_stance();
         return;
     }
 
     let target_count = stances[current_stance].target_count;
-    if(target_count > 1 && stances[current_stance].related_skill) {
-        target_count = target_count + Math.round(target_count * skills[stances[current_stance].related_skill].current_level/skills[stances[current_stance].related_skill].max_level);
+    if (target_count > 1 && stances[current_stance].related_skill) {
+        target_count = target_count + Math.round(target_count * skills[stances[current_stance].related_skill].current_level / skills[stances[current_stance].related_skill].max_level);
     }
 
-    if(stances[current_stance].randomize_target_count) {
-        target_count = Math.floor(Math.random()*target_count) || 1;
+    if (stances[current_stance].randomize_target_count) {
+        target_count = Math.floor(Math.random() * target_count) || 1;
     }
 
-    let targets=[];
+    let targets = [];
     const alive_targets = current_enemies.filter(enemy => enemy.is_alive).slice(-target_count);
 
-    while(alive_targets.length>0) {
+    while (alive_targets.length > 0) {
         targets.push(alive_targets.pop());
     }
 
-    use_stamina(stances[current_stance].stamina_cost);
-    let actual_cooldown = base_cooldown / character.get_stamina_multiplier();
+	// Check if stamina_cost >= 1 before using stamina
+    if (stances[current_stance].stamina_cost >= 1) {
+        use_stamina(stances[current_stance].stamina_cost);
+    }
 
+    // Check if mana_cost >= 1 before using mana
+    if (stances[current_stance].mana_cost >= 1) {
+        use_mana(stances[current_stance].mana_cost);
+    }
+
+    let actual_cooldown = base_cooldown / character.get_stamina_multiplier();
     let attack_power = character.get_attack_power();
-    do_character_attack_loop({base_cooldown, actual_cooldown, attack_power, targets});
+	let magic_power = character.get_magic_power();
+    
+    do_character_attack_loop({ base_cooldown, actual_cooldown, attack_power, magic_power, targets });
 }
 
 /**
@@ -974,7 +1017,7 @@ function set_character_attack_loop({base_cooldown}) {
  * @param {String} attack_power 
  * @param {String} attack_type 
  */
-function do_character_attack_loop({base_cooldown, actual_cooldown, attack_power, targets}) {
+function do_character_attack_loop({base_cooldown, actual_cooldown, attack_power, magic_power, targets}) {
     let count = 0;
     clear_character_attack_loop();
     character_attack_loop = setInterval(() => {
@@ -984,9 +1027,27 @@ function do_character_attack_loop({base_cooldown, actual_cooldown, attack_power,
             count = 0;
             let leveled = false;
 
+
+if (stances[current_stance].stance_type === "Physical") {
             for(let i = 0; i < targets.length; i++) {
                 do_character_combat_action({target: targets[i], attack_power});
             }
+			
+} else if (stances[current_stance].stance_type === "Magical") {
+			for(let i = 0; i < targets.length; i++) {
+                do_character_combat_action({target: targets[i], magic_power});
+            }
+} else {
+    // Optionally, handle cases where the stance_type is neither "Physical" nor "Magical"
+    console.log("Unknown stance type");
+    hero_base_damage = 0; // Default or fallback value
+	log_message(stances[current_stance]);
+	log_message(stances[current_stance].stamina_cost);
+	log_message(stances[current_stance].name);
+}
+
+
+
 
             if(stances[current_stance].related_skill) {
                 leveled = add_xp_to_skill({skill: skills[stances[current_stance].related_skill], xp_to_add: targets.reduce((sum,enemy)=>sum+enemy.xp_value,0)/targets.length});
@@ -1111,6 +1172,15 @@ function do_enemy_combat_action(enemy_id) {
     } else {
         add_xp_to_skill({skill: skills["Iron skin"], xp_to_add: Math.sqrt(attacker.xp_value)/2});
     }
+	
+	if(character.stats.full.health < 0.5*(character.stats.full.max_health)) {
+        add_xp_to_skill({skill: skills["Resilience"], xp_to_add: attacker.xp_value});
+    }
+
+	if(character.stats.full.health < 0.1*(character.stats.full.max_health)) {
+        add_xp_to_skill({skill: skills["Last Stand"], xp_to_add: attacker.xp_value});
+    }
+
 
     let {damage_taken, fainted} = character.take_damage({damage_value: damage_dealt});
 
@@ -1133,7 +1203,8 @@ function do_enemy_combat_action(enemy_id) {
 
     if(fainted) {
         total_deaths++;
-        log_message(character.name + " has lost consciousness", "hero_defeat");
+        log_message(character.name + " has lost consciousness", "hero_defeat")
+		add_xp_to_skill({skill: skills["Undying"], xp_to_add: 100});;
 
         update_displayed_health();
         if(options.auto_return_to_bed && last_location_with_bed) {
@@ -1148,9 +1219,22 @@ function do_enemy_combat_action(enemy_id) {
     update_displayed_health();
 }
 
-function do_character_combat_action({target, attack_power}) {
+function do_character_combat_action({target, attack_power, magic_power}) {
 
-    const hero_base_damage = attack_power;
+let hero_base_damage;
+
+if (stances[current_stance].stance_type === "Physical") {
+    hero_base_damage = attack_power;  // Use attack_power if the stance is "Physical"
+} else if (stances[current_stance].stance_type === "Magical") {
+    hero_base_damage = magic_power;   // Use magic_power if the stance is "Magical"
+} else {
+    // Optionally, handle cases where the stance_type is neither "Physical" nor "Magical"
+    console.log("Unknown stance type");
+    hero_base_damage = 0; // Default or fallback value
+	log_message(stances[current_stance]);
+	log_message(stances[current_stance].stamina_cost);
+	log_message(stances[current_stance].name);
+}
 
     let damage_dealt;
     
@@ -1165,6 +1249,8 @@ function do_character_combat_action({target, attack_power}) {
         hit_chance_modifier *= skills["Pest killer"].get_coefficient("multiplicative");
     } else if(target.size === "large") {
         add_xp_to_skill({skill: skills["Giant slayer"], xp_to_add: target.xp_value});
+    } else if(target.size === "medium") {
+        add_xp_to_skill({skill: skills["Battling"], xp_to_add: target.xp_value});
     }
 
     const hit_chance = get_hit_chance(character.stats.full.attack_points, target.stats.agility * Math.sqrt(target.stats.intuition ?? 1)) * hit_chance_modifier;
@@ -1172,12 +1258,12 @@ function do_character_combat_action({target, attack_power}) {
     if(hit_chance > Math.random()) {//hero's attack hits
 
         if(character.equipment.weapon != null) {
-            damage_dealt = Math.round(10 * hero_base_damage * (1.2 - Math.random() * 0.4) )/10;
+            damage_dealt = Math.round(10 * hero_base_damage * tags_bonus * type_bonus * (1.2 - Math.random() * 0.4) )/10;
 
             add_xp_to_skill({skill: skills[weapon_type_to_skill[character.equipment.weapon.weapon_type]], xp_to_add: target.xp_value}); 
 
         } else {
-            damage_dealt = Math.round(10 * hero_base_damage * (1.2 - Math.random() * 0.4) )/10;
+            damage_dealt = Math.round(10 * hero_base_damage * tags_bonus * type_bonus * (1.2 - Math.random() * 0.4) )/10;
             add_xp_to_skill({skill: skills['Unarmed'], xp_to_add: target.xp_value});
         }
         //small randomization by up to 20%, then bonus from skill
@@ -1193,8 +1279,13 @@ function do_character_combat_action({target, attack_power}) {
         damage_dealt = Math.ceil(10*Math.max(damage_dealt - target.stats.defense, damage_dealt*0.1, 1))/10;
 
         target.stats.health -= damage_dealt;
+		
+		if(damage_dealt > 3*target.stats.max_health){
+			add_xp_to_skill({skill: skills["Obliteration"], xp_to_add: target.xp_value});
+		}	
         if(critted) {
-            log_message(target.name + " was critically hit for " + damage_dealt + " dmg", "enemy_attacked_critically");
+            log_message(target.name + " was critically hit for " + damage_dealt + " dmg", "enemy_attacked_critically")
+			add_xp_to_skill({skill: skills["Criticality"], xp_to_add: target.xp_value});
         }
         else {
             log_message(target.name + " was hit for " + damage_dealt + " dmg", "enemy_attacked");
@@ -1203,6 +1294,7 @@ function do_character_combat_action({target, attack_power}) {
         if(target.stats.health <= 0) {
             total_kills++;
             target.stats.health = 0; //to not go negative on displayed value
+
 
             log_message(target.name + " was defeated", "enemy_defeated");
 
@@ -1218,6 +1310,49 @@ function do_character_combat_action({target, attack_power}) {
             }
             
             kill_enemy(target);
+			//console.log(target); //enable for debugging purposes
+
+		// exterminator skill xp for killing enemies. probably a better way of doing this?
+        if(target.tags.includes("undead")) {
+			add_xp_to_skill({skill: skills["Purifier"], xp_to_add: target.xp_value});
+        }
+        if(target.tags.includes("animated")) {
+			add_xp_to_skill({skill: skills["Smasher"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("dragonoid")) {
+			add_xp_to_skill({skill: skills["Dragon Slayer"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("humanoid")) {
+			add_xp_to_skill({skill: skills["Man Slayer"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("amorphous")) {
+			add_xp_to_skill({skill: skills["Slime Culler"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("spirit")) {
+			add_xp_to_skill({skill: skills["Exorcist"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("beast")) {
+			add_xp_to_skill({skill: skills["Hunter"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("abomination")) {
+			add_xp_to_skill({skill: skills["Monster Hunter"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("fire")) {
+			add_xp_to_skill({skill: skills["Extinguisher"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("ice")) {
+			add_xp_to_skill({skill: skills["Defroster"], xp_to_add: target.xp_value});
+        }	
+        if(target.tags.includes("arthropod")) {
+			add_xp_to_skill({skill: skills["Exterminator"], xp_to_add: target.xp_value});
+        }	
+
+
+
+		// magic stance xp for killing enemies
+		if (stances[current_stance].stance_type === "Magical") {
+				add_xp_to_skill({skill: skills["Magic Potency"], xp_to_add: 100});
+            }
         }
 
         update_displayed_health_of_enemies();
@@ -1233,6 +1368,7 @@ function do_character_combat_action({target, attack_power}) {
  */
 function kill_enemy(target) {
     target.is_alive = false;
+
     if(target.add_to_bestiary) {
         if(enemy_killcount[target.name]) {
             enemy_killcount[target.name] += 1;
@@ -1242,6 +1378,8 @@ function kill_enemy(target) {
             create_new_bestiary_entry(target.name);
         }
     }
+
+	
     const enemy_id = current_enemies.findIndex(enemy => enemy===target);
     clear_enemy_attack_loop(enemy_id);
 }
@@ -1261,6 +1399,23 @@ function use_stamina(num = 1, use_efficiency = true) {
 
     update_displayed_stamina();
 }
+
+function use_mana(num = 1, use_efficiency = true) {
+    
+    character.stats.full.mana -= num/(use_efficiency * character.stats.full.mana_efficiency || 1);
+
+    if(character.stats.full.mana < 0)  {
+        character.stats.full.mana = 0;
+    }
+
+    if(character.stats.full.mana < 0.5*(character.stats.full.max_mana)){
+        add_xp_to_skill({skill: skills["Mana Control"], xp_to_add: 100000*num});
+        update_displayed_stats();
+    }
+
+    update_displayed_mana();
+}
+
 
 /**
  * adds xp to skills, handles their levelups and tooltips
@@ -1349,6 +1504,7 @@ function add_xp_to_skill({skill, xp_to_add = 1, should_info = true, use_bonus = 
 
             //no point doing any checks for optimization
             update_displayed_stamina_efficiency();
+			update_displayed_mana_efficiency();
 
             for(let i = 0; i < unlocks?.skills?.length; i++) {
                 const unlocked_skill = skills[unlocks.skills[i]];
@@ -1673,6 +1829,8 @@ function character_unequip_item(item_slot) {
 function use_item(item_key) { 
     const {id} = JSON.parse(item_key);
     const item_effects = item_templates[id].effects;
+	const gluttony_value = item_templates[id].gluttony_value;
+	const mana_value = item_templates[id].mana_value;
 
     let used = false;
     for(let i = 0; i < item_effects.length; i++) {
@@ -1684,6 +1842,8 @@ function use_item(item_key) {
         }
     }
     if(used) {
+		add_xp_to_skill({skill: skills["Gluttony"], xp_to_add: gluttony_value});
+		add_xp_to_skill({skill: skills["Mana Expansion"], xp_to_add: mana_value});
         update_displayed_effects();
         character.stats.add_active_effect_bonus();
         update_character_stats();
@@ -2841,11 +3001,18 @@ function update() {
             character.stats.full.stamina = character.stats.full.max_stamina
         }
 
+        if(character.stats.full.mana > character.stats.full.max_mana) {
+            character.stats.full.mana = character.stats.full.max_mana
+        }
+
         if(character.stats.full.health_regeneration_flat || character.stats.full.health_regeneration_percent) {
             update_displayed_health();
         }
         if(character.stats.full.stamina_regeneration_flat || character.stats.full.stamina_regeneration_percent) {
             update_displayed_stamina();
+        }
+        if(character.stats.full.mana_regeneration_flat || character.stats.full.mana_regeneration_percent) {
+            update_displayed_mana();
         }
         
         save_counter += 1;
