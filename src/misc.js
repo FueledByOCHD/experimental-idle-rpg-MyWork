@@ -48,6 +48,7 @@ const stat_names = {"strength": "str",
                     "magic": "magic",
                     "attack_speed": "attack speed",
                     "attack_power": "attack power",
+					"magic_power": "magic power",
                     "crit_rate": "crit rate",
                     "crit_multiplier": "crit dmg",
                     "stamina_efficiency": "stamina efficiency",
@@ -57,6 +58,8 @@ const stat_names = {"strength": "str",
                     "evasion": "EP",
                     "evasion_points": "EP",
                     "attack_points": "AP",
+					"stamina_regeneration_flat": "stamina regeneration (flat)",
+					"mana_regeneration_flat": "mana regeneration (flat)"
                 };
 
 function get_hit_chance(attack_points, evasion_points) {

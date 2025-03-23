@@ -8,11 +8,13 @@ class Stance {
                 name,
                 id,
                 related_skill,
+				stance_type = "Physical",
                 target_count = 1,
                 randomize_target_count = false,
-                is_unlocked = false,
+                is_unlocked = true,
                 stat_multipliers = {},
                 stamina_cost = 1,
+				mana_cost = 0,
                 description = ""
             }
         ) {
@@ -24,6 +26,7 @@ class Stance {
         this.name = name;
         this.id = id;
         this.related_skill = related_skill;
+		this.stance_type = stance_type;
         this.description = description;
         if(this.target_count < 1) {
             throw("Combat stance cannot target less than 1 enemy!");
@@ -33,6 +36,7 @@ class Stance {
         this.is_unlocked = is_unlocked;
         this.stat_multipliers = stat_multipliers;
         this.stamina_cost = stamina_cost;
+		this.mana_cost = mana_cost;
     }
 
     getDescription = function(){
@@ -146,4 +150,22 @@ stances["flowing water"] = new Stance({
     target_count: 2,
     stamina_cost: 4,
 });
+
+stances["magic"] = new Stance({
+    name: "Magic Stance",
+    id: "magic",
+	stance_type: "Magical",
+    description: "Magic Stance",
+	related_skill: "Magic Mastery",
+	stamina_cost: 0,
+	mana_cost: 1,
+	target_count: 5,
+    stat_multipliers: {
+        magic_power: 2.0,
+        hit_chance: 1.2,
+        agility: 0.4,
+        block_strength: 0.2,
+    },
+})
+
 export {stances};

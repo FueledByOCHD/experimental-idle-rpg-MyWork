@@ -464,6 +464,22 @@ class Textline {
             }), 
         }
     });
+	
+dialogues["Sanctuary Gift"] = new Dialogue({
+        name: "Sanctuary Gift",
+        textlines: {
+            "Sanctuary Gift": new Textline({ 
+                name: "Sanctuary Gift",
+                text: "Hello stranger, have free stuff",
+                unlocks: {
+                    items: ["Old pickaxe" ,"Old axe", "Old sickle"],
+					traders: ["village trader"],
+                    flags: ["is_gathering_unlocked", "is_crafting_unlocked"],
+                },
+                locks_lines: ["Sanctuary Gift"],
+            }),
+        }
+    });
 })();
 
 export {dialogues};

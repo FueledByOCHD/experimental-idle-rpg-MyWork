@@ -62,4 +62,22 @@ effect_templates["Slight food poisoning"] = new ActiveEffect({
     }
 });
 
+effect_templates["Minor strength boost"] = new ActiveEffect({
+    name: "Minor strength boost",
+    effects: {
+        stats: {
+            strength: {flat: 5},
+        }
+    }
+});
+
+effect_templates["Minor magic boost"] = new ActiveEffect({
+    name: "Minor magic boost",
+    effects: {
+        stats: {
+            magic: {flat: 5},
+        }
+    }
+});
+
 export {effect_templates, ActiveEffect};

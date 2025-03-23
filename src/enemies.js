@@ -15,7 +15,11 @@ class Enemy {
                  loot_list = [], 
                  size = "small",
                  add_to_bestiary = true,
-                 tags = [],
+                 tags = {},
+				 a,
+				 b,
+				 c = [],
+				 d = {},
                 }) {
                     
         this.name = name;
@@ -26,11 +30,11 @@ class Enemy {
         //only magic & defense can be 0 in stats, other things will cause issues
         this.stats.max_health = stats.health;
         this.loot_list = loot_list;
-        this.tags = {};
-        for(let i = 0; i <tags.length; i++) {
-            this.tags[tags[i]] = true;
-        }
-        this.tags[size] = true;
+        this.tags = tags;
+       // for(let i = 0; i <tags.length; i++) {
+          //  this.tags[tags[i]] = true;
+       // }
+       // this.tags[size] = true;
 
         this.add_to_bestiary = add_to_bestiary; //generally set it false only for SOME of challenges and keep true for everything else
 
@@ -41,6 +45,7 @@ class Enemy {
         }
 
     }
+	
     get_loot() {
         // goes through items and calculates drops
         // result is in form [{item: Item, count: item_count}, {...}, {...}]
@@ -67,6 +72,35 @@ class Enemy {
 
         return loot;
     }
+	
+    get_loot() {
+        // goes through items and calculates drops
+        // result is in form [{item: Item, count: item_count}, {...}, {...}]
+        let loot = [];
+        let item;
+        
+        for (let i = 0; i < this.loot_list.length; i++) {
+            item = this.loot_list[i];
+            if(!item_templates[item.item_name]) {
+                console.warn(`Tried to loot an item "${item.item_name}" from "${this.name}", but such an item doesn't exist!`);
+                continue;
+            }
+            if (item.chance * this.get_droprate_modifier() >= Math.random()) {
+                // checks if it should drop
+                let item_count = 1;
+                if ("count" in item) {
+                    item_count = Math.round(Math.random() * (item["count"]["max"] - item["count"]["min"]) + item["count"]["min"]);
+                    // calculates how much drops (from range min-max, both inclusive)
+                }
+
+                loot.push({ "item": getItem(item_templates[item.item_name]), "count": item_count });
+            }
+        }
+
+        return loot;
+    }
+	
+	
 
     get_droprate_modifier() {
         let droprate_modifier = 1;
@@ -80,6 +114,9 @@ class Enemy {
         return droprate_modifier;
     }
 }
+
+
+
 
 //regular enemies
 (function(){
@@ -206,6 +243,67 @@ class Enemy {
         ],
         size: "medium"
     });
+    
+    enemy_templates["Pinata"] = new Enemy({
+        name: "Pinata", 
+        description: "Pinata",
+        //xp_value: 10000, 
+		xp_value: 1000000000000, 
+        rank: 1,
+        size: "medium",
+        tags: ["undead", "animated", "fire", "spirit"],
+        stats: {health: 1, attack: 1, agility: 1, dexterity: 1, intuition: 1, magic: 0, attack_speed: 1, defense: 1}, 
+        loot_list: [
+            //{item_name: "Bones", chance: 0.60},
+			{item_name: "Low quality iron ore", chance: 1}, {item_name: "Low quality iron ingot", chance: 1}, {item_name: "Piece of wood", chance: 1}, {item_name: "Piece of rough wood", chance: 1}, {item_name: "Iron ingot", chance: 1},
+        ],
+    });
+	
+    enemy_templates["OmniPinata"] = new Enemy({
+        name: "OmniPinata", 
+        description: "OmniPinata",
+        //xp_value: 10000, 
+		xp_value: 1000000000000, 
+        rank: 1,
+        size: "medium",
+        tags: ["undead", "animated", "fire", "spirit", "ice", "beast", "abomination", "humanoid", "dragonoid", "arthropod", "amorphous"],
+        stats: {health: 1, attack: 1, agility: 1, dexterity: 1, intuition: 1, magic: 0, attack_speed: 1, defense: 1}, 
+        loot_list: [
+            //{item_name: "Bones", chance: 0.60},
+			{item_name: "Low quality iron ore", chance: 1}, {item_name: "Low quality iron ingot", chance: 1}, {item_name: "Piece of wood", chance: 1}, {item_name: "Piece of rough wood", chance: 1}, {item_name: "Iron ingot", chance: 1},
+        ],
+    });
+	
+	    enemy_templates["Speedy Pinata"] = new Enemy({
+        name: "Speedy Pinata", 
+        description: "Speedy Pinata",
+        xp_value: 10000, 
+		//xp_value: 1000000000000, 
+        rank: 1,
+        size: "medium",
+        tags: ["undead", "animated", "fire", "spirit"],
+        stats: {health: 1, attack: 1, agility: 1, dexterity: 50, intuition: 1, magic: 0, attack_speed: 30, defense: 1}, 
+        loot_list: [
+            //{item_name: "Bones", chance: 0.60},
+			{item_name: "Low quality iron ore", chance: 1}, {item_name: "Low quality iron ingot", chance: 1}, {item_name: "Piece of wood", chance: 1}, {item_name: "Piece of rough wood", chance: 1}, {item_name: "Iron ingot", chance: 1},
+        ],
+    });
+
+	    enemy_templates["Sturdy Pinata"] = new Enemy({
+        name: "Sturdy Pinata", 
+        description: "Sturdy Pinata",
+        //xp_value: 10000, 
+		xp_value: 100000000000000, 
+        rank: 1,
+        size: "medium",
+        tags: ["undead", "animated", "fire", "spirit"],
+        stats: {health: 1000, attack: 1, agility: 1, dexterity: 1, intuition: 1, magic: 0, attack_speed: 1, defense: 1}, 
+        loot_list: [
+            //{item_name: "Bones", chance: 0.60},
+			{item_name: "Low quality iron ore", chance: 1}, {item_name: "Low quality iron ingot", chance: 1}, {item_name: "Piece of wood", chance: 1}, {item_name: "Piece of rough wood", chance: 1}, {item_name: "Iron ingot", chance: 1},
+        ],
+    });
+	
 })();
 
 
@@ -217,7 +315,7 @@ class Enemy {
         add_to_bestiary: false,
         xp_value: 1,
         rank: 4,
-        tags: ["living", "human"],
+        tags: ["living", "humanoid"],
         size: "medium",
         stats: {health: 300, attack: 50, agility: 20, dexterity: 80, magic: 0, intuition: 20, attack_speed: 0.2, defense: 30},
     });
@@ -227,7 +325,7 @@ class Enemy {
         add_to_bestiary: false,
         xp_value: 1,
         rank: 4,
-        tags: ["living", "human"],
+        tags: ["living", "humanoid"],
         size: "medium",
         stats: {health: 300, attack: 20, agility: 20, dexterity: 50, magic: 0, intuition: 20, attack_speed: 2, defense: 10},
     });
@@ -237,7 +335,7 @@ class Enemy {
         add_to_bestiary: false,
         xp_value: 1,
         rank: 1,
-        tags: ["unanimate"],
+        tags: ["animated"],
         size: "large",
         stats: {health: 10000, attack: 0, agility: 0, dexterity: 0, magic: 0, intuition: 0, attack_speed: 0.000001, defense: 100},
     });
@@ -248,7 +346,7 @@ class Enemy {
         add_to_bestiary: false,
         xp_value: 1,
         rank: 5,
-        tags: ["living", "human"],
+        tags: ["living", "humanoid"],
         size: "medium",
         stats: {health: 400, attack: 60, agility: 60, dexterity: 60, magic: 0, intuition: 60, attack_speed: 2, defense: 30},
     });

@@ -149,6 +149,14 @@ class TradeItem {
         location_name: "Slums",
         profit_margin: 3,
     });
+    traders["debug trader"] = new Trader({
+        name: "debug trader",
+        inventory_template: "debug",
+        is_unlocked: true,
+        location_name: "Slums",
+        profit_margin: -1,
+    });
+	
 })();
 
 //create inventory templates
@@ -192,8 +200,11 @@ class TradeItem {
             new TradeItem({item_name: "Weak healing powder", count: [2,5]}),
 
             new TradeItem({item_name: "ABC for kids", count: [1], chance: 1}),
+			new TradeItem({item_name: "Ye olde dictionary", count: [1], chance: 1}),
             new TradeItem({item_name: "Old combat manual", count: [1], chance: 0.5}),
-            
+			new TradeItem({item_name: "Joy of Mining", count: [1], chance: 0.5}),
+			new TradeItem({item_name: "Joy of Woodcutting", count: [1], chance: 0.5}),
+			new TradeItem({item_name: "Power of Dreams", count: [1], chance: 0.5}),
             new TradeItem({item_name: "Glass phial", count: [5,10], chance: 1}),
     ];
 
@@ -242,6 +253,17 @@ class TradeItem {
             new TradeItem({item_name: "Twist liek a snek", count: [1], chance: 0.7}),
 
             new TradeItem({item_name: "Glass phial", count: [5,10], chance: 1}),
+    ];
+	
+	inventory_templates["debug"] = 
+    [
+            new TradeItem({item_name: "Weak healing powder", count: [20,50]}),
+			new TradeItem({item_name: "Stale bread", count: [40,100]}),
+            new TradeItem({item_name: "Fresh bread", count: [20,50]}),
+			new TradeItem({item_name: "Roasted rat meat", count: [20,50]}),
+			new TradeItem({item_name: "Roasted purified rat meat", count: [20,50]}),
+			new TradeItem({item_name: "1000 Years Pill", count: [20,50]}),
+			new TradeItem({item_name: "TRUE ULTIMATE POWER", count: [1]}),
     ];
 })();
 export {traders};
